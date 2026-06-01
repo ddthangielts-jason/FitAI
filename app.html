@@ -7,7 +7,8 @@
 <meta name="theme-color" content="#080808">
 <title>FitAI — AI Workout Coach</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
    RESET + VARIABLES
@@ -19,9 +20,9 @@
   --bg:#080808;--bg2:#101010;--bg3:#181818;--bg4:#202020;--bg5:#2a2a2a;
   --txt:#f0efe8;--txt2:#8a8a8a;--txt3:#4a4a4a;
   --brd:#1e1e1e;--brd2:#2a2a2a;--brd3:#363636;
-  --FD:'Bebas Neue',sans-serif;
-  --FB:'DM Sans',sans-serif;
-  --FM:'JetBrains Mono',monospace;
+  --FD:'Bebas Neue','Arial Narrow',Arial,sans-serif;
+  --FB:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --FM:'JetBrains Mono','Courier New',Courier,monospace;
   --r:10px;--rl:14px;--rxl:20px;
   --safe-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -939,7 +940,11 @@ label.lbl{font-size:10.5px;color:var(--txt3);display:block;margin-bottom:4px;tex
   <div class="screen" id="s-ai" style="padding-bottom:0">
     <div style="padding:18px 16px 12px;border-bottom:1px solid var(--brd);flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
       <div style="font-family:var(--FD);font-size:24px;letter-spacing:.04em">AI <span style="color:var(--lime)">Coach</span></div>
-      <span style="background:var(--lime);color:#111;font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;font-family:var(--FM)">Claude AI</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div id="ai-status-dot" style="width:8px;height:8px;border-radius:50%;background:var(--txt3)"></div>
+        <span id="ai-status-lbl" style="font-size:10px;color:var(--txt3);font-family:var(--FM)">Đang kiểm tra...</span>
+        <span style="background:var(--lime);color:#111;font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;font-family:var(--FM)">Claude AI</span>
+      </div>
     </div>
     <div class="chat-area" id="chat-msgs">
       <div class="bubble ai">
@@ -2375,7 +2380,7 @@ function drawChart(key,data,lbls){
   document.getElementById(key+'-line').setAttribute('d',line);
   document.getElementById(key+'-dots').innerHTML=pts.map((p,i)=>`
     <circle cx="${p.x}" cy="${p.y}" r="${i===pts.length-1?4:2.5}" fill="${i===pts.length-1?'#c8f135':'#1a2800'}" stroke="var(--lime)" stroke-width="1.5"/>
-    ${i===pts.length-1?`<text x="${p.x}" y="${p.y-7}" text-anchor="middle" font-size="8.5" fill="var(--lime)" font-family="JetBrains Mono,monospace">${data[i]}kg</text>`:''}`).join('');
+    ${i===pts.length-1?`<text x="${p.x}" y="${p.y-7}" text-anchor="middle" font-size="8.5" fill="var(--lime)" font-family="JetBrains Mono,Courier New,monospace">${data[i]}kg</text>`:''}`).join('');
   document.getElementById(key+'-lbls').innerHTML=lbls.map(l=>`<span>${l}</span>`).join('');
 }
 function renderMeas(){
@@ -2510,14 +2515,54 @@ function activatePro(){
 if(new URLSearchParams(location.search).get('pro')==='true')activatePro();
 
 // ════════════════════════════════════════════════════════
-// AI UTILITY
+// AI UTILITY — with better error handling
 // ════════════════════════════════════════════════════════
+let aiStatus='unknown'; // 'ok' | 'no-key' | 'error'
 async function ai(prompt,maxTok=400){
   try{
-    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:prompt}],max_tokens:maxTok})});
+    const r=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'user',content:prompt}],max_tokens:maxTok})
+    });
+    if(!r.ok){aiStatus='error';return'Lỗi server. Thử lại sau.';}
     const d=await r.json();
-    return d.content?.find(c=>c.type==='text')?.text||'Có lỗi xảy ra.';
-  }catch{return'Lỗi kết nối AI.';}
+    const txt=d.content?.find(c=>c.type==='text')?.text;
+    if(!txt){aiStatus='error';return'Lỗi định dạng phản hồi.';}
+    if(txt.includes('API key chưa được cấu hình')){aiStatus='no-key';return txt;}
+    aiStatus='ok';
+    return txt;
+  }catch(e){
+    aiStatus='error';
+    return'Lỗi kết nối mạng. Kiểm tra internet và thử lại.';
+  }
+}
+async function testAIConnection(){
+  const dot=document.getElementById('ai-status-dot');
+  const lbl=document.getElementById('ai-status-lbl');
+  const r=await fetch('/api/chat',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({messages:[{role:'user',content:'ping'}],max_tokens:10})
+  }).catch(()=>null);
+  if(!r){
+    if(dot)dot.style.background='var(--red)';
+    if(lbl)lbl.textContent='Không kết nối';
+    notif('⚠️','AI không kết nối được','Kiểm tra internet hoặc API key',5000);
+    return false;
+  }
+  const d=await r.json().catch(()=>null);
+  const txt=d?.content?.find(c=>c.type==='text')?.text||'';
+  if(txt.includes('API key chưa')){
+    if(dot)dot.style.background='var(--amber)';
+    if(lbl)lbl.textContent='Thiếu API key';
+    notif('⚠️','AI chưa kết nối',
+      'Vercel → Settings → Environment Variables → thêm ANTHROPIC_API_KEY → Redeploy',7000);
+    return false;
+  }
+  if(dot)dot.style.background='var(--lime)';
+  if(lbl){lbl.textContent='Đang hoạt động';lbl.style.color='var(--lime)';}
+  return true;
 }
 
 // ════════════════════════════════════════════════════════
@@ -2749,6 +2794,8 @@ window.onload=()=>{
     document.getElementById('onboarding').classList.add('show');
     document.getElementById('app').style.display='none';
   }
+  // Test AI connection after 2s
+  setTimeout(testAIConnection, 2000);
 };
 </script>
 </body>

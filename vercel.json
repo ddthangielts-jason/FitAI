@@ -1,18 +1,14 @@
 {
   "version": 2,
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/", "dest": "/index.html" },
     { "src": "/app", "dest": "/app.html" },
-    { "src": "/exercises", "dest": "/exercises.html" }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" }
-      ]
-    }
+    { "src": "/exercises", "dest": "/exercises.html" },
+    { "src": "/", "dest": "/index.html" }
   ]
 }
