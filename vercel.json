@@ -1,14 +1,7 @@
 {
   "version": 2,
-  "functions": {
-    "api/*.mjs": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "routes": [
-    { "src": "/api/chat", "dest": "/api/chat.mjs" },
-    { "src": "/api/checkout", "dest": "/api/checkout.mjs" },
-    { "src": "/api/webhook", "dest": "/api/webhook.mjs" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/app", "dest": "/app.html" },
     { "src": "/exercises", "dest": "/exercises.html" },
     { "src": "/", "dest": "/index.html" }
