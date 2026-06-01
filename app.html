@@ -559,6 +559,31 @@ label.lbl{font-size:10.5px;color:var(--txt3);display:block;margin-bottom:4px;tex
   </div>
 </div>
 
+<!-- ═══════════════════════ PLATE CALCULATOR ═══════════════════════ -->
+<div id="plate-modal" style="position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.92);display:none;align-items:flex-end;max-width:430px;margin:0 auto">
+  <div style="background:var(--bg2);border-radius:20px 20px 0 0;padding:20px;width:100%;border-top:1px solid var(--brd2)">
+    <div class="rb" style="margin-bottom:16px">
+      <div style="font-family:var(--FD);font-size:24px;letter-spacing:.04em">Tính <span style="color:var(--lime)">đĩa tạ</span></div>
+      <button onclick="document.getElementById('plate-modal').style.display='none'" style="background:none;border:none;color:var(--txt2);font-size:22px;cursor:pointer">✕</button>
+    </div>
+    <div class="fg">
+      <label class="lbl">Tổng cân nặng cần (kg)</label>
+      <input class="inp" id="plate-target" type="number" placeholder="100" step="0.5" oninput="calcPlates()">
+    </div>
+    <div class="fg">
+      <label class="lbl">Cân nặng thanh barbell (kg)</label>
+      <select class="inp" id="plate-bar" onchange="calcPlates()">
+        <option value="20">20kg — Olympic standard</option>
+        <option value="15">15kg — Women's Olympic</option>
+        <option value="10">10kg — Short bar</option>
+        <option value="7">7kg — EZ bar</option>
+      </select>
+    </div>
+    <div id="plate-result" style="margin-top:4px;min-height:60px"></div>
+    <button class="btn bg" style="margin-top:12px" onclick="document.getElementById('plate-modal').style.display='none'">Đóng</button>
+  </div>
+</div>
+
 <!-- ═══════════════════════ PAYWALL ═══════════════════════ -->
 <div id="paywall">
   <div class="pw-hdr">
@@ -1103,7 +1128,20 @@ label.lbl{font-size:10.5px;color:var(--txt3);display:block;margin-bottom:4px;tex
         <div class="menu-item" onclick="goTab('s-progress')"><div class="menu-ico">📊</div><div class="menu-lbl">Tiến độ & số đo</div><div class="menu-arr">›</div></div>
         <div class="menu-item" onclick="goTab('s-plan')"><div class="menu-ico">📋</div><div class="menu-lbl">Kho plan</div><div class="menu-arr">›</div></div>
         <div class="menu-item" onclick="openExLib(false)"><div class="menu-ico">🎬</div><div class="menu-lbl">Thư viện bài tập</div><div class="menu-arr">›</div></div>
+        <div class="menu-item" onclick="showPlateCalc()"><div class="menu-ico">🧮</div><div class="menu-lbl">Tính đĩa tạ</div><div class="menu-arr">›</div></div>
         <div class="menu-item" onclick="showPW()"><div class="menu-ico">⚡</div><div class="menu-lbl" style="color:var(--lime)">Nâng cấp Pro</div><div class="menu-arr" style="color:var(--lime)">›</div></div>
+        <div class="menu-item" onclick="resetApp()"><div class="menu-ico">🗑️</div><div class="menu-lbl" style="color:var(--red)">Xóa tất cả dữ liệu</div><div class="menu-arr" style="color:var(--red)">›</div></div>
+      </div>
+
+      <!-- Macro targets display -->
+      <div class="sec-label">Chỉ số dinh dưỡng</div>
+      <div class="card" id="p-macro-card">
+        <div class="xs muted" style="margin-bottom:8px">Dựa trên cân nặng và mục tiêu của bạn</div>
+        <div class="g3">
+          <div class="sb"><div class="sv" style="font-size:18px" id="p-tdee">--</div><div class="sk">TDEE kcal</div></div>
+          <div class="sb"><div class="sv" style="font-size:18px" id="p-macro-p">--g</div><div class="sk">Protein</div></div>
+          <div class="sb"><div class="sv" style="font-size:18px" id="p-macro-cal">--</div><div class="sk">Calo target</div></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1475,6 +1513,9 @@ function save(){
     profile:ST.profile,workouts:ST.workouts.slice(0,100),stats:ST.stats,
     currentPlanId:ST.currentPlan?.id,measurements:ST.measurements,
     weekDone:ST.weekDone,nut:ST.nut,isPro:ST.isPro,
+    planStartDate:ST.planStartDate,
+    lastWorkoutDate:ST.lastWorkoutDate,
+    weekSavedOn:getWeekKey(),
   }));}catch(e){}
 }
 function load(){
@@ -1490,9 +1531,34 @@ function load(){
     if(d.weekDone)ST.weekDone=d.weekDone;
     if(d.nut)Object.assign(ST.nut,d.nut);
     if(d.isPro)ST.isPro=d.isPro;
+    if(d.planStartDate)ST.planStartDate=d.planStartDate;
+    if(d.lastWorkoutDate)ST.lastWorkoutDate=d.lastWorkoutDate;
+    // ── Streak reset logic ──
+    // If last workout was >1 day ago, reset streak
+    if(ST.lastWorkoutDate){
+      const last=new Date(ST.lastWorkoutDate);
+      const today=new Date();
+      const diffDays=Math.floor((today-last)/(1000*60*60*24));
+      if(diffDays>1){
+        ST.stats.streak=0;
+      }
+    }
+    // Reset weekly done if new week started
+    const lastSave=d.weekSavedOn;
+    const nowWeek=getWeekKey();
+    if(lastSave&&lastSave!==nowWeek){
+      ST.weekDone=Array(7).fill(false);
+    }
     return !!d.profile?.name;
   }catch(e){return false;}
 }
+function getWeekKey(){
+  const d=new Date();
+  const jan1=new Date(d.getFullYear(),0,1);
+  const week=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7);
+  return `${d.getFullYear()}-W${week}`;
+}
+setInterval(save,20000);
 setInterval(save,20000);
 
 // ════════════════════════════════════════════════════════
@@ -1723,8 +1789,9 @@ function addEx(name){
         ${exInfo?`<div class="xxs muted">${exInfo.nameVi!==name?exInfo.nameVi:''}</div>`:''}
       </div>
       <div class="ex-block-actions">
+        <button class="btn bg bxs" onclick="showPlateCalc('${id}','${name}')" title="Tính đĩa tạ">🏋️</button>
         <button class="btn bg bxs" onclick="openAITip('${id}','${name}')">⚡ AI</button>
-        <button class="btn bg bxs" onclick="swapEx('${id}','${name}')">↔ Swap</button>
+        <button class="btn bg bxs" onclick="swapEx('${id}','${name}')">↔</button>
         <button class="btn bg bxs" onclick="removeEx('${id}')">✕</button>
       </div>
     </div>
@@ -1845,6 +1912,7 @@ function finishWorkout(){
   });
   vol=Math.round(vol);
   ST.stats.total++;ST.stats.streak++;ST.stats.volume+=vol;
+  ST.lastWorkoutDate=new Date().toISOString();
   const w={date:new Date().toLocaleDateString('vi-VN'),title:ST.activeW.title,dur,vol,exCount,totalSets,exDetails};
   ST.workouts.unshift(w);
   document.getElementById('w-idle').style.display='block';
@@ -1857,11 +1925,27 @@ function finishWorkout(){
 function renderWHist(){
   const el=document.getElementById('w-hist');
   if(!ST.workouts.length){el.innerHTML='<div class="xs muted">Chưa có buổi tập nào.</div>';return;}
-  el.innerHTML=ST.workouts.slice(0,8).map(w=>`
-    <div class="csm rb" style="margin-bottom:7px">
-      <div><div class="sm" style="font-weight:500">${w.title}</div><div class="xs muted">${w.date} · ${w.dur}ph · ${w.totalSets} sets</div></div>
-      <span class="tag tl">${w.vol}kg</span>
+  el.innerHTML=ST.workouts.slice(0,10).map((w,i)=>`
+    <div class="csm" style="margin-bottom:7px;cursor:pointer" onclick="toggleWDetail(${i})">
+      <div class="rb">
+        <div>
+          <div class="sm" style="font-weight:500">${w.title}</div>
+          <div class="xs muted">${w.date} · ${w.dur}ph · ${w.totalSets||0} sets</div>
+        </div>
+        <span class="tag tl">${w.vol}kg</span>
+      </div>
+      <div id="whist-detail-${i}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)">
+        ${Object.entries(w.exDetails||{}).map(([n,d])=>`
+          <div class="rb" style="font-size:12px;padding:3px 0;border-bottom:1px solid var(--brd)">
+            <span style="color:var(--txt2)">${n}</span>
+            <span class="mono" style="font-size:11px;color:var(--lime)">${d}</span>
+          </div>`).join('')}
+      </div>
     </div>`).join('');
+}
+function toggleWDetail(i){
+  const el=document.getElementById('whist-detail-'+i);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
 }
 
 // ════════════════════════════════════════════════════════
@@ -2254,14 +2338,6 @@ function addFoodPreset(i){
   ST.nut[ST.addFoodMeal].push(FOOD_PRESETS[i]);
   closeAddFood();save();renderNutMeals();
 }
-function closeAddFood(){
-  const nm=document.getElementById('food-custom-name').value.trim();
-  if(nm&&ST.addFoodMeal){
-    ST.nut[ST.addFoodMeal].push({name:nm,cal:250,p:15,c:25,f:8});
-  }
-  document.getElementById('add-food-modal').classList.remove('show');
-  save();renderNutMeals();
-}
 function removeFood(meal,i){ST.nut[meal].splice(i,1);renderNutMeals();save();}
 async function genMealPlan(){
   const el=document.getElementById('nut-ai-wrap');
@@ -2382,14 +2458,25 @@ function autoSave(){
 function updateProfileDisplay(){
   const p=ST.profile;
   const bmi=p.kg&&p.cm?(p.kg/((p.cm/100)**2)).toFixed(1):'--';
+  const bmiCat=bmi==='--'?'':+bmi<18.5?' · Thiếu cân':+bmi<25?' · Bình thường':+bmi<30?' · Thừa cân':' · Béo phì';
   const av=document.getElementById('p-avatar');
   if(av)av.textContent=p.name?.[0]?.toUpperCase()||'?';
-  document.getElementById('p-name-disp').textContent=p.name||'Lifter';
-  document.getElementById('p-meta-disp').textContent=`${p.kg}kg · BMI ${bmi} · ${p.level}`;
-  if(ST.isPro){document.getElementById('p-pro-badge').style.display='block';document.getElementById('p-upgrade-btn').style.display='none';}
-  // Home greeting
-  const homeNameEl=document.getElementById('home-name');
-  if(homeNameEl&&p.name)homeNameEl.innerHTML=p.name.split(' ').pop()+'<span>.</span>';
+  const nd=document.getElementById('p-name-disp');if(nd)nd.textContent=p.name||'Lifter';
+  const md=document.getElementById('p-meta-disp');if(md)md.textContent=`${p.kg}kg · ${p.cm}cm · BMI ${bmi}${bmiCat}`;
+  if(ST.isPro){
+    const pb=document.getElementById('p-pro-badge');if(pb)pb.style.display='block';
+    const ub=document.getElementById('p-upgrade-btn');if(ub)ub.style.display='none';
+  }
+  // Macro targets in profile
+  try{
+    const t=calcMacroTargets();
+    const te=document.getElementById('p-tdee');if(te)te.textContent=t.cal;
+    const pe=document.getElementById('p-macro-p');if(pe)pe.textContent=t.protein+'g';
+    const ce=document.getElementById('p-macro-cal');if(ce)ce.textContent=t.cal;
+  }catch(e){}
+  // Home name
+  const hn=document.getElementById('home-name');
+  if(hn&&p.name)hn.innerHTML=p.name.split(' ').pop()+'<span>.</span>';
 }
 
 // ════════════════════════════════════════════════════════
@@ -2500,12 +2587,50 @@ function closeAddFood(){cancelAddFood();}
 // REST TIMER — FIXED
 // ════════════════════════════════════════════════════════
 function setRest(sec){
-  // If already running, just change time
-  if(restState.active){
-    restState.total=sec;restState.remaining=sec;
-  } else {
-    startRest(sec,'');
+  restState.total=sec;restState.remaining=sec;
+  if(!restState.active){
+    restState.active=true;
+    document.getElementById('rest-overlay').classList.add('show');
+    document.getElementById('rest-pill').classList.remove('ending');
+    clearInterval(restState.interval);
+    restState.interval=setInterval(tickRest,1000);
   }
+  // Reset arc visually
+  document.getElementById('rest-arc').style.strokeDashoffset='0';
+  document.getElementById('rest-arc').style.stroke='var(--lime)';
+  document.getElementById('rest-num').style.color='var(--lime)';
+  tickRest();
+}
+
+// ════════════════════════════════════════════════════════
+// PLATE CALCULATOR + WARMUP SETS
+// ════════════════════════════════════════════════════════
+function calcPlates(totalKg,barKg=20){
+  const load=(totalKg-barKg)/2;
+  const plates=[20,15,10,5,2.5,1.25];
+  const result=[];let rem=load;
+  plates.forEach(p=>{const n=Math.floor(rem/p);if(n>0){result.push(`${n}×${p}kg`);rem-=n*p;}});
+  return result.length?result.join(' + '):'Chỉ bar';
+}
+function showPlateCalc(id,name){
+  const data=ST.exData[id];
+  const workingSets=data?.sets.filter(s=>s.kg>0&&s.reps>0);
+  const kg=workingSets?.length?workingSets[workingSets.length-1].kg:data?.sets[0]?.kg||60;
+  const plates=calcPlates(kg);
+  const warmups=genWarmups(kg);
+  const tip=document.getElementById(id+'_tip');
+  tip.innerHTML=`<strong>🏋️ ${kg}kg</strong> — Bar 20kg + mỗi bên: <span style="color:var(--lime)">${plates}</span><br>
+    <strong>Warm-up sets:</strong><br>${warmups.map(w=>`${w.pct}% → ${w.kg}kg × ${w.reps} reps`).join('<br>')}`;
+  tip.classList.add('show');
+}
+function genWarmups(workingKg){
+  const bar=20;
+  return[
+    {pct:0,kg:bar,reps:10,label:'Empty bar'},
+    {pct:50,kg:Math.round(workingKg*0.5/2.5)*2.5,reps:8,label:'50%'},
+    {pct:65,kg:Math.round(workingKg*0.65/2.5)*2.5,reps:5,label:'65%'},
+    {pct:80,kg:Math.round(workingKg*0.8/2.5)*2.5,reps:3,label:'80%'},
+  ].filter(w=>w.kg>=bar);
 }
 
 // ════════════════════════════════════════════════════════
@@ -2557,6 +2682,57 @@ function getPlanProgress(){
   const pct=Math.min(Math.round(weeks/totalWeeks*100),100);
   const workoutsInPlan=ST.workouts.filter(w=>w.title===ST.currentPlan.name).length;
   return{weeks,totalWeeks,pct,workoutsInPlan};
+}
+
+// ════════════════════════════════════════════════════════
+// PLATE CALCULATOR
+// ════════════════════════════════════════════════════════
+function showPlateCalc(){
+  document.getElementById('plate-modal').style.display='flex';
+  document.getElementById('plate-target').value='';
+  document.getElementById('plate-result').innerHTML='';
+}
+function calcPlates(){
+  const target=parseFloat(document.getElementById('plate-target').value)||0;
+  const bar=parseFloat(document.getElementById('plate-bar').value)||20;
+  const el=document.getElementById('plate-result');
+  if(target<=bar){
+    el.innerHTML=`<div class="xs muted">Chỉ cần thanh barbell ${bar}kg, không cần đĩa.</div>`;return;
+  }
+  const perSide=(target-bar)/2;
+  const plates=[25,20,15,10,5,2.5,1.25,0.5];
+  let remaining=perSide;
+  const used=[];
+  for(const p of plates){
+    while(remaining>=p-0.001){
+      used.push(p);remaining=Math.round((remaining-p)*100)/100;
+    }
+  }
+  if(remaining>0.05){
+    el.innerHTML=`<div class="xs" style="color:var(--red)">Không thể đạt chính xác ${target}kg với đĩa tiêu chuẩn.</div>`;return;
+  }
+  const grouped={};
+  used.forEach(p=>{grouped[p]=(grouped[p]||0)+1;});
+  const plateBars=Object.entries(grouped).sort((a,b)=>b[0]-a[0]).map(([p,n])=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid var(--brd)">
+      <div style="background:var(--bg4);border:1px solid var(--brd2);border-radius:6px;padding:4px 10px;font-family:var(--FM);font-size:13px;color:var(--lime);min-width:48px;text-align:center">${p}kg</div>
+      <div style="font-size:12px;color:var(--txt2)">× ${n} đĩa mỗi bên <span style="color:var(--txt3)">(tổng ${n*2} đĩa)</span></div>
+    </div>`).join('');
+  el.innerHTML=`
+    <div style="background:var(--lime-dim);border:1px solid rgba(200,241,53,.2);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:10px;color:var(--lime);font-family:var(--FM);margin-bottom:4px">KẾT QUẢ — ${perSide}kg mỗi bên</div>
+      ${plateBars}
+    </div>
+    <div class="xs muted">Tổng: Thanh ${bar}kg + ${perSide*2}kg đĩa = <strong style="color:var(--lime)">${target}kg</strong></div>`;
+}
+
+// ════════════════════════════════════════════════════════
+// RESET APP
+// ════════════════════════════════════════════════════════
+function resetApp(){
+  if(!confirm('Xóa TẤT CẢ dữ liệu? Không thể hoàn tác.'))return;
+  localStorage.removeItem('fitai_v2');
+  location.reload();
 }
 
 // ════════════════════════════════════════════════════════
