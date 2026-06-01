@@ -1,0 +1,2094 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FitAI App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --lime:#c8f135;--lime-d:#a8d015;
+  --bg:#080808;--bg2:#111;--bg3:#181818;--bg4:#202020;--bg5:#272727;
+  --txt:#f0efe8;--txt2:#909090;--txt3:#505050;
+  --brd:#232323;--brd2:#2e2e2e;
+  --red:#ff4545;--blue:#4d9fff;--amber:#ffb84d;--pink:#ff6eb4;
+  --r:10px;--r-lg:14px;--r-xl:20px;
+  --FD:'Bebas Neue',sans-serif;--FB:'DM Sans',sans-serif;--FM:'JetBrains Mono',monospace;
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--FB);font-size:15px;overflow:hidden}
+input,select,textarea,button{font-family:var(--FB);-webkit-appearance:none}
+::-webkit-scrollbar{width:0;height:0}
+
+/* ── APP SHELL ── */
+#app{width:100%;max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--bg)}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;bottom:64px;overflow-y:auto;display:none;flex-direction:column;animation:fadeIn .2s ease}
+.screen.active{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:absolute;bottom:0;left:0;right:0;height:64px;background:var(--bg2);border-top:1px solid var(--brd);display:flex;z-index:100}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--txt3);font-size:9.5px;letter-spacing:.04em;cursor:pointer;transition:color .2s;text-transform:uppercase;padding:8px 2px}
+.bni svg{width:20px;height:20px}
+.bni.on{color:var(--lime)}
+
+/* ── PAGE HEADER ── */
+.ph{padding:20px 18px 12px;display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0}
+.phh{font-family:var(--FD);font-size:30px;letter-spacing:.05em;line-height:1}
+.phh span{color:var(--lime)}
+.ph-sub{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;font-family:var(--FM)}
+
+/* ── PADDED CONTENT ── */
+.px{padding:0 18px}
+
+/* ── BUTTONS ── */
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;border-radius:var(--r);border:none;font-size:13.5px;font-weight:500;cursor:pointer;transition:all .15s;width:100%;letter-spacing:.01em}
+.btn:active{transform:scale(.98)}
+.bl{background:var(--lime);color:#111}
+.bl:hover{background:var(--lime-d)}
+.bg{background:transparent;color:var(--txt);border:1px solid var(--brd2)}
+.bg:hover{background:var(--bg3)}
+.bd{background:transparent;color:var(--red);border:1px solid #2e1515}
+.bsm{padding:7px 13px;font-size:12px;width:auto;border-radius:8px}
+.bicon{width:34px;height:34px;padding:0;background:var(--bg3);border:1px solid var(--brd);color:var(--txt2);border-radius:8px;flex-shrink:0}
+
+/* ── INPUTS ── */
+.inp{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:10px 13px;color:var(--txt);font-size:13.5px;width:100%;outline:none;transition:border .2s}
+.inp:focus{border-color:var(--lime)}
+.inp::placeholder{color:var(--txt3)}
+.lbl{font-size:11px;color:var(--txt3);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--FM)}
+.fg{margin-bottom:13px}
+
+/* ── CARDS ── */
+.card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-lg);padding:15px}
+.csm{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:10px 13px}
+
+/* ── UTILS ── */
+.row{display:flex;align-items:center;gap:8px}
+.rb{display:flex;align-items:center;justify-content:space-between}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.muted{color:var(--txt2)}
+.sm{font-size:12px}
+.xs{font-size:11px}
+.mono{font-family:var(--FM)}
+.divider{height:1px;background:var(--brd);margin:13px 0}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:500}
+.tl{background:#1e2e00;color:var(--lime)}
+.tb{background:#0d1e33;color:var(--blue)}
+.ta{background:#2e1f00;color:var(--amber)}
+.tr{background:#2e0d0d;color:var(--red)}
+.tp{background:#1e0015;color:var(--pink)}
+.sl{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--FM);margin-bottom:12px;margin-top:18px}
+
+/* ── STAT BOX ── */
+.sb{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:12px;text-align:center}
+.sv{font-family:var(--FD);font-size:26px;color:var(--lime);letter-spacing:.04em;line-height:1}
+.sk{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+
+/* ── PROGRESS BAR ── */
+.pb{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.pf{height:100%;background:var(--lime);border-radius:2px;transition:width .4s}
+
+/* ── ONBOARDING ── */
+#ob{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;flex-direction:column;padding:24px 20px;max-width:430px;margin:0 auto}
+.ob-step{display:none;flex-direction:column;flex:1}
+.ob-step.on{display:flex}
+.ob-prog{display:flex;gap:5px;margin-bottom:28px}
+.ob-d{flex:1;height:3px;background:var(--bg4);border-radius:2px;transition:background .3s}
+.ob-d.on{background:var(--lime)}
+.ob-title{font-family:var(--FD);font-size:44px;letter-spacing:.04em;line-height:1.05;margin-bottom:8px}
+.ob-sub{color:var(--txt2);font-size:14px;margin-bottom:28px;line-height:1.6;font-weight:300}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cb{background:var(--bg3);border:1.5px solid var(--brd2);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:5px}
+.cb.on{border-color:var(--lime);background:#1e2e00}
+.cb .ico{font-size:22px}
+.cb .nm{font-size:13px;font-weight:500}
+.cb .sx{font-size:11px;color:var(--txt2)}
+.ob-nav{display:flex;gap:8px;margin-top:auto;padding-top:16px}
+
+/* ── PAYWALL ── */
+#pw{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.96);display:none;flex-direction:column;overflow-y:auto;max-width:430px;margin:0 auto}
+#pw.on{display:flex}
+.pw-h{padding:18px 18px 0;display:flex;align-items:center;justify-content:space-between}
+.pw-close{width:34px;height:34px;border-radius:50%;background:var(--bg3);border:1px solid var(--brd);color:var(--txt2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pw-body{padding:16px 18px 36px}
+.pw-title{font-family:var(--FD);font-size:56px;letter-spacing:.05em;line-height:.92;background:linear-gradient(135deg,#c8f135,#8aad0d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px}
+.pw-sub{color:var(--txt2);font-size:13px;margin-bottom:22px;line-height:1.6}
+.ppc{background:var(--bg2);border:1.5px solid var(--brd2);border-radius:var(--r-lg);padding:16px;margin-bottom:10px;cursor:pointer;position:relative;transition:all .2s}
+.ppc.on{border-color:var(--lime);background:var(--bg3)}
+.ppc .ck{position:absolute;top:14px;right:14px;width:20px;height:20px;border-radius:50%;background:var(--bg4);border:1.5px solid var(--brd2);display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .2s}
+.ppc.on .ck{background:var(--lime);border-color:var(--lime);color:#111;font-weight:700}
+.ppc-name{font-size:14px;font-weight:500;margin-bottom:3px}
+.ppc-price{font-family:var(--FD);font-size:26px;letter-spacing:.04em;color:var(--lime)}
+.ppc-note{font-size:12px;color:var(--txt2);margin-top:2px}
+.ppc-orig{font-size:11px;color:var(--txt3);text-decoration:line-through}
+.off-tag{background:var(--lime);color:#111;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:.05em;font-family:var(--FM);vertical-align:middle;margin-left:6px}
+.feat-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--brd)}
+.feat-row:last-child{border-bottom:none}
+.feat-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;background:#1e2e00;flex-shrink:0}
+.feat-title{font-size:13px;font-weight:500}
+.feat-desc{font-size:11.5px;color:var(--txt2);line-height:1.5;margin-top:2px}
+.guar{text-align:center;font-size:11px;color:var(--txt3);margin:12px 0 16px;display:flex;align-items:center;justify-content:center;gap:5px}
+
+/* ── EXERCISE LOG ── */
+.exb{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-lg);padding:13px;margin-bottom:9px}
+.ex-name{font-size:14px;font-weight:500}
+.ex-hdr{display:grid;grid-template-columns:22px 1fr 1fr 1fr 30px;gap:5px;font-size:9.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;padding:0 1px;margin-bottom:5px;font-family:var(--FM)}
+.set-r{display:grid;grid-template-columns:22px 1fr 1fr 1fr 30px;gap:5px;align-items:center;margin-bottom:5px}
+.sn{font-family:var(--FM);font-size:11px;color:var(--txt3);text-align:center}
+.si{background:var(--bg4);border:1px solid var(--brd);border-radius:5px;padding:5px 3px;color:var(--txt);font-size:12.5px;text-align:center;width:100%;outline:none;font-family:var(--FM)}
+.si:focus{border-color:var(--lime)}
+.sd{width:30px;height:30px;border-radius:5px;border:1px solid var(--brd);background:none;color:var(--txt3);cursor:pointer;font-size:12px;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.sd.on{background:var(--lime);border-color:var(--lime);color:#111}
+
+/* ── CHAT ── */
+.chat-area{flex:1;overflow-y:auto;padding:12px 18px;display:flex;flex-direction:column;gap:10px}
+.bub{padding:10px 13px;border-radius:13px;font-size:13px;line-height:1.6;max-width:88%}
+.bub.ai{background:var(--bg3);border:1px solid var(--brd);border-bottom-left-radius:4px;align-self:flex-start}
+.bub.user{background:#1e2e00;border:1px solid #2d4400;border-bottom-right-radius:4px;align-self:flex-end;color:#d4f570}
+.ai-lbl{font-size:9.5px;color:var(--lime);font-weight:500;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;display:flex;align-items:center;gap:3px}
+.chat-inp-wrap{padding:10px 18px;border-top:1px solid var(--brd);display:flex;gap:8px;flex-shrink:0}
+.td{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--lime);animation:bl 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.quick-q{display:flex;gap:6px;overflow-x:auto;padding:8px 18px;flex-shrink:0;scrollbar-width:none}
+.qq{background:var(--bg3);border:1px solid var(--brd2);border-radius:20px;padding:6px 13px;font-size:11.5px;color:var(--txt2);cursor:pointer;white-space:nowrap;transition:all .2s}
+.qq:hover{border-color:var(--txt3);color:var(--txt)}
+
+/* ── PROGRESS CHART (SVG) ── */
+.chart-wrap{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-lg);padding:14px;margin-bottom:10px}
+.chart-title{font-size:13px;font-weight:500;margin-bottom:3px}
+.chart-sub{font-size:11px;color:var(--txt3);margin-bottom:12px}
+.chart-svg{width:100%;overflow:visible}
+
+/* ── PLAN CARD ── */
+.plan-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-lg);overflow:hidden;margin-bottom:10px;cursor:pointer;transition:border-color .2s}
+
+/* PLAN DETAIL MODAL */
+#plan-detail{position:fixed;inset:0;z-index:280;background:var(--bg);display:none;flex-direction:column;max-width:430px;margin:0 auto;transform:translateX(100%);transition:transform .3s cubic-bezier(.32,.72,0,1)}
+#plan-detail.show{display:flex;transform:translateX(0)}
+.pd-hero{flex-shrink:0;height:160px;display:flex;align-items:flex-end;padding:16px;position:relative;overflow:hidden}
+.pd-hero-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.pd-hero-text{font-family:var(--FD);font-size:80px;letter-spacing:.05em;line-height:1;opacity:.15;color:#fff}
+.pd-hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.8) 100%)}
+.pd-hero-content{position:relative;z-index:2}
+.pd-back{position:absolute;top:14px;left:14px;z-index:3;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px)}
+.pd-body{flex:1;overflow-y:auto;padding:16px 18px 24px}
+.pd-name{font-family:var(--FD);font-size:28px;letter-spacing:.04em;line-height:1.05;margin-bottom:6px}
+.pd-meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.pd-stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.pd-stat{background:var(--bg3);border-radius:var(--r);padding:10px;text-align:center}
+.pd-stat-val{font-family:var(--FD);font-size:20px;color:var(--lime);letter-spacing:.04em;line-height:1}
+.pd-stat-lbl{font-size:9.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;font-family:var(--FM);margin-top:3px}
+.pd-week-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;scrollbar-width:none}
+.pd-week-tab{padding:5px 13px;border-radius:20px;font-size:11.5px;border:1px solid var(--brd2);background:transparent;color:var(--txt3);cursor:pointer;white-space:nowrap;transition:all .2s;font-family:var(--FM);flex-shrink:0}
+.pd-week-tab.on{background:var(--lime);color:#111;border-color:var(--lime);font-weight:500}
+.pd-day{background:var(--bg3);border-radius:var(--r);padding:10px 12px;margin-bottom:6px}
+.pd-day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.pd-day-name{font-size:12px;font-weight:500}
+.pd-day-type{font-size:10px;color:var(--txt3);font-family:var(--FM)}
+.pd-ex-item{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--brd)}
+.pd-ex-item:last-child{border-bottom:none}
+.pd-ex-name{font-size:11.5px;color:var(--txt2);flex:1}
+.pd-ex-sets{font-size:10px;color:var(--txt3);font-family:var(--FM)}
+.pd-rest-info{background:#0d1e33;border:1px solid #1a3a5c;border-radius:var(--r);padding:10px 12px;margin-bottom:12px}
+.pd-rest-title{font-size:10px;color:var(--blue);font-family:var(--FM);letter-spacing:.08em;margin-bottom:4px}
+.pd-rest-desc{font-size:12px;color:var(--txt2);line-height:1.5}
+
+/* EXERCISE SEARCH IN WORKOUT */
+#ex-search-modal{position:fixed;inset:0;z-index:200;background:var(--bg);display:none;flex-direction:column;max-width:430px;margin:0 auto}
+#ex-search-modal.on{display:flex}
+.ex-search-list{flex:1;overflow-y:auto;padding:0 16px 16px}
+.ex-search-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--brd);cursor:pointer;transition:opacity .15s}
+.ex-search-item:active{opacity:.6}
+.ex-search-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ex-search-name{font-size:13.5px;font-weight:500;margin-bottom:2px}
+.ex-search-muscle{font-size:11px;color:var(--txt3)}
+.ex-category-header{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--FM);padding:12px 0 6px}
+
+/* NOTIFICATION BANNER */
+#notif-bar{position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:500;display:none}
+#notif-bar.on{display:block}
+.notif-item{background:var(--bg2);border-bottom:1px solid var(--brd2);padding:12px 18px;display:flex;align-items:center;gap:10px;animation:slideDown .3s ease}
+@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+.notif-icon{font-size:18px;flex-shrink:0}
+.notif-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.notif-desc{font-size:11.5px;color:var(--txt2)}
+.notif-close{margin-left:auto;color:var(--txt3);font-size:18px;cursor:pointer;flex-shrink:0}
+
+/* SMOOTH ANIMATIONS */
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.anim-slideup{animation:slideUp .3s ease forwards}
+.anim-popin{animation:popIn .25s ease forwards}
+
+/* BMI / STATS SECTION */
+.stats-ring-wrap{display:flex;align-items:center;gap:16px;margin-bottom:12px}
+.mini-ring{position:relative;width:56px;height:56px;flex-shrink:0}
+.mini-ring svg{transform:rotate(-90deg)}
+.mini-ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--FM);font-size:11px;font-weight:500;color:var(--lime)}
+
+/* IMPROVED PILL FILTER */
+.pill-row{display:flex;gap:6px;overflow-x:auto;padding:0 18px 12px;flex-shrink:0;scrollbar-width:none}
+
+/* ACTIVE WORKOUT PROGRESS */
+.workout-progress-bar{height:3px;background:var(--brd);position:absolute;bottom:0;left:0;right:0}
+.workout-progress-fill{height:100%;background:var(--lime);transition:width .5s ease}
+
+/* DARK OVERLAY for modals */
+.dark-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:250;display:none;backdrop-filter:blur(2px)}
+.dark-overlay.on{display:block}
+
+.plan-card:hover,.plan-card:active{border-color:var(--brd2)}
+.plan-thumb{height:72px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.plan-thumb-text{font-family:var(--FD);font-size:48px;letter-spacing:.05em;line-height:1;opacity:.7}
+.plan-body{padding:12px}
+.plan-name{font-size:13.5px;font-weight:500;margin-bottom:4px}
+
+/* ── PILL FILTER ── */
+.pill-row{display:flex;gap:6px;overflow-x:auto;padding:0 18px 12px;flex-shrink:0;scrollbar-width:none}
+.pill{padding:6px 13px;border-radius:20px;font-size:11.5px;border:1px solid var(--brd2);background:transparent;color:var(--txt2);cursor:pointer;white-space:nowrap;transition:all .2s}
+.pill.on{background:var(--lime);color:#111;border-color:var(--lime);font-weight:500}
+
+/* ── MEASUREMENTS ── */
+.meas-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--brd)}
+.meas-row:last-child{border-bottom:none}
+.meas-icon{width:32px;height:32px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.meas-label{font-size:13px;flex:1}
+.meas-val{font-family:var(--FM);font-size:13px;color:var(--lime)}
+.meas-change{font-size:10px;color:var(--txt3)}
+
+/* ── WORKOUT TOPBAR ── */
+.wtb{background:var(--bg2);border-bottom:1px solid var(--brd);padding:13px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:50}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--lime);color:#111;padding:9px 20px;border-radius:20px;font-size:12.5px;font-weight:500;pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap;z-index:9999;max-width:300px;text-align:center}
+#toast.on{opacity:1}
+
+/* REST TIMER */
+#rest-timer{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);z-index:150;background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--rxl);padding:14px 20px;display:none;align-items:center;gap:16px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+#rest-timer.on{display:flex}
+.rt-circle{width:52px;height:52px;position:relative;flex-shrink:0}
+.rt-circle svg{transform:rotate(-90deg)}
+.rt-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--FM);font-size:15px;font-weight:500;color:var(--lime)}
+.rt-info{flex:1}
+.rt-label{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--FM);margin-bottom:2px}
+.rt-status{font-size:13px;font-weight:500}
+.rt-btns{display:flex;gap:6px}
+.rt-btn{background:var(--bg3);border:1px solid var(--brd);border-radius:8px;color:var(--txt2);font-size:11px;padding:5px 10px;cursor:pointer;font-family:var(--FB);transition:all .2s;white-space:nowrap}
+.rt-btn:hover{background:var(--bg4);color:var(--txt)}
+.rt-btn.skip{background:var(--lime);color:#111;border-color:var(--lime)}
+@keyframes rt-pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.rt-pulse{animation:rt-pulse 1s ease-in-out infinite}
+
+/* WORKOUT SUMMARY MODAL */
+#ws-modal{position:fixed;inset:0;z-index:350;background:rgba(0,0,0,.95);display:none;flex-direction:column;max-width:430px;margin:0 auto;overflow-y:auto}
+#ws-modal.on{display:flex}
+.ws-hero{padding:40px 20px 24px;text-align:center;background:linear-gradient(180deg,#1e2e00 0%,transparent 100%)}
+.ws-emoji{font-size:56px;margin-bottom:12px}
+.ws-title{font-family:var(--FD);font-size:40px;letter-spacing:.04em;color:var(--lime);margin-bottom:4px}
+.ws-sub{font-size:14px;color:var(--txt2)}
+.ws-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px;margin-bottom:16px}
+.ws-stat{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:14px;text-align:center}
+.ws-val{font-family:var(--FD);font-size:32px;color:var(--lime);letter-spacing:.04em;line-height:1}
+.ws-lbl{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;font-family:var(--FM)}
+.ws-feel{padding:0 18px 16px}
+.ws-feel-title{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;font-family:var(--FM);margin-bottom:10px}
+.feel-options{display:flex;gap:8px}
+.feel-opt{flex:1;padding:10px 6px;border-radius:var(--r);border:1px solid var(--brd2);background:var(--bg3);text-align:center;cursor:pointer;transition:all .2s;font-size:11px;color:var(--txt2)}
+.feel-opt.selected{border-color:var(--lime);background:#1e2e00;color:var(--lime)}
+.feel-emoji{font-size:20px;display:block;margin-bottom:3px}
+.ws-insight{padding:0 18px 16px}
+.ws-pr-list{display:flex;flex-direction:column;gap:6px;padding:0 18px 16px}
+.ws-pr-item{background:#1e2e00;border:1px solid #2d4400;border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;gap:10px}
+.pr-icon{font-size:16px}
+.pr-text{font-size:12px;color:#9fd44f}
+.ws-actions{padding:0 18px 32px;display:flex;flex-direction:column;gap:8px}
+.ws-share{background:var(--bg2);border:1px solid var(--brd2);border-radius:var(--r);padding:12px;text-align:center;cursor:pointer;font-size:13px;color:var(--txt2);transition:all .2s}
+.ws-share:hover{border-color:var(--txt3);color:var(--txt)}
+
+/* NUTRITION TRACKER */
+.nut-macro-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
+.nut-macro{background:var(--bg3);border-radius:var(--r);padding:10px;text-align:center}
+.nut-macro-val{font-family:var(--FD);font-size:22px;color:var(--lime);letter-spacing:.04em;line-height:1}
+.nut-macro-lbl{font-size:9.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.07em;font-family:var(--FM);margin-top:3px}
+.nut-meal{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:13px;margin-bottom:9px}
+.nut-meal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.nut-meal-name{font-size:13px;font-weight:500}
+.nut-meal-cal{font-size:11px;color:var(--lime);font-family:var(--FM)}
+.nut-food-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--brd);font-size:12px}
+.nut-food-item:last-child{border-bottom:none}
+.nut-food-name{color:var(--txt2)}
+.nut-food-info{font-family:var(--FM);font-size:11px;color:var(--txt3)}
+.add-food-btn{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--lime);cursor:pointer;margin-top:6px;padding:4px 0}
+
+/* ACHIEVEMENTS */
+.ach-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.ach-card{background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);padding:12px;text-align:center;transition:all .2s}
+.ach-card.unlocked{background:#1e2e00;border-color:#2d4400}
+.ach-card.locked{opacity:.4}
+.ach-icon{font-size:24px;margin-bottom:5px}
+.ach-name{font-size:10.5px;font-weight:500;margin-bottom:2px}
+.ach-desc{font-size:9.5px;color:var(--txt3);line-height:1.4}
+.ach-card.unlocked .ach-desc{color:#6db34a}
+
+/* CALENDAR */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:12px}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.cal-day-lbl{text-align:center;font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;font-family:var(--FM)}
+.cal-day{aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10.5px;cursor:pointer;transition:all .2s;position:relative;font-family:var(--FM)}
+.cal-day.today{border:1.5px solid var(--lime);color:var(--lime)}
+.cal-day.workout{background:#1e2e00;color:#9fd44f}
+.cal-day.rest{color:var(--txt3)}
+.cal-day.skip{color:var(--red);opacity:.6}
+.cal-day-dot{width:4px;height:4px;border-radius:50%;background:var(--lime);position:absolute;bottom:3px}
+
+
+/* ── STREAK RING ── */
+.sring{position:relative;width:80px;height:80px;flex-shrink:0}
+.sring svg{transform:rotate(-90deg)}
+.sring .sv2{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sring .num{font-family:var(--FD);font-size:24px;color:var(--lime);line-height:1}
+.sring .sub{font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em}
+
+/* ── COMPARE VS ── */
+.vs-box{background:#1e2e00;border:1px solid #2d4400;border-radius:var(--r);padding:8px 12px;margin-top:8px}
+.vs-row{display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.vs-good{color:var(--lime)}
+.vs-bad{color:var(--red)}
+
+/* ── FORM GUIDE ── */
+.fg-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-lg);overflow:hidden;margin-bottom:10px}
+.fg-video{height:110px;background:linear-gradient(135deg,var(--bg3),var(--bg4));display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.fg-play{width:44px;height:44px;background:rgba(200,241,53,.9);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.fg-body{padding:12px}
+.fg-name{font-size:13px;font-weight:500;margin-bottom:4px}
+.cue-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.cue-item{font-size:12px;color:var(--txt2);display:flex;gap:7px;line-height:1.4}
+.cue-item::before{content:'→';color:var(--lime);flex-shrink:0}
+
+/* ── WEEKLY CALENDAR ── */
+.week-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+.wday{text-align:center}
+.wday-lbl{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;font-family:var(--FM)}
+.wday-dot{width:28px;height:28px;border-radius:50%;background:var(--bg3);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:10px;margin:0 auto;cursor:pointer;transition:all .2s}
+.wday-dot.rest{background:var(--bg3);color:var(--txt3)}
+.wday-dot.done{background:var(--lime);color:#111;border-color:var(--lime)}
+.wday-dot.today{border-color:var(--lime);color:var(--lime)}
+.wday-dot.skip{border-color:var(--red);color:var(--red);opacity:.5}
+
+/* ── PROFILE SCREEN ── */
+.avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#1e2e00,#2d4400);border:2px solid var(--lime);display:flex;align-items:center;justify-content:center;font-family:var(--FD);font-size:24px;color:var(--lime);flex-shrink:0}
+.pro-badge{background:linear-gradient(135deg,var(--lime),#8aad0d);color:#111;font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;font-family:var(--FM);letter-spacing:.06em}
+.menu-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--brd);cursor:pointer}
+.menu-item:last-child{border-bottom:none}
+.menu-item:hover .menu-label{color:var(--txt)}
+.menu-icon{width:32px;height:32px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.menu-label{font-size:13.5px;color:var(--txt2);flex:1}
+.menu-arrow{color:var(--txt3);font-size:16px}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- ═══ ONBOARDING ═══ -->
+<div id="ob">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+    <div style="font-family:var(--FD);font-size:22px;letter-spacing:.06em">FIT<span style="color:var(--lime)">AI</span></div>
+    <button onclick="skipOB()" style="background:none;border:none;color:var(--txt3);font-size:12px;cursor:pointer;font-family:var(--FB)">Bỏ qua</button>
+  </div>
+  <div class="ob-prog" id="obp"><div class="ob-d on"></div><div class="ob-d"></div><div class="ob-d"></div><div class="ob-d"></div></div>
+
+  <div class="ob-step on" id="ob1">
+    <div class="ob-title">Mục tiêu<br>của bạn?</div>
+    <div class="ob-sub">AI sẽ cá nhân hóa plan, weight gợi ý và meal plan theo mục tiêu của bạn.</div>
+    <div class="cg" id="goal-c">
+      <div class="cb" onclick="pick(this,'goal','muscle')"><div class="ico">💪</div><div class="nm">Tăng cơ</div><div class="sx">Hypertrophy</div></div>
+      <div class="cb" onclick="pick(this,'goal','strength')"><div class="ico">🏋️</div><div class="nm">Sức mạnh</div><div class="sx">Strength</div></div>
+      <div class="cb" onclick="pick(this,'goal','fat')"><div class="ico">🔥</div><div class="nm">Giảm mỡ</div><div class="sx">Fat loss</div></div>
+      <div class="cb" onclick="pick(this,'goal','general')"><div class="ico">⚡</div><div class="nm">Sức khỏe</div><div class="sx">General</div></div>
+    </div>
+    <div class="ob-nav"><button class="btn bl" onclick="obGo(2)">Tiếp theo →</button></div>
+  </div>
+
+  <div class="ob-step" id="ob2">
+    <div class="ob-title">Trình độ<br>của bạn?</div>
+    <div class="ob-sub">AI hiệu chỉnh volume, intensity và RPE phù hợp với mức độ của bạn.</div>
+    <div class="cg" id="level-c">
+      <div class="cb" onclick="pick(this,'level','beginner')"><div class="ico">🌱</div><div class="nm">Beginner</div><div class="sx">< 1 năm</div></div>
+      <div class="cb on" onclick="pick(this,'level','intermediate')"><div class="ico">🔶</div><div class="nm">Intermediate</div><div class="sx">1–3 năm</div></div>
+      <div class="cb" onclick="pick(this,'level','advanced')" style="grid-column:1/-1"><div class="ico">🏆</div><div class="nm">Advanced</div><div class="sx">3+ năm, biết RPE & periodization</div></div>
+    </div>
+    <div class="ob-nav">
+      <button class="btn bg" style="width:auto;padding:11px 18px" onclick="obGo(1)">←</button>
+      <button class="btn bl" onclick="obGo(3)">Tiếp theo →</button>
+    </div>
+  </div>
+
+  <div class="ob-step" id="ob3">
+    <div class="ob-title">Thiết bị<br>bạn có?</div>
+    <div class="ob-sub">AI gợi ý bài thay thế phù hợp thiết bị thực tế của bạn khi cần.</div>
+    <div class="cg" id="equip-c">
+      <div class="cb on" onclick="pick(this,'equip','full')"><div class="ico">🏟️</div><div class="nm">Full gym</div><div class="sx">Đầy đủ</div></div>
+      <div class="cb" onclick="pick(this,'equip','barbell')"><div class="ico">🪝</div><div class="nm">Barbell</div><div class="sx">+ Rack</div></div>
+      <div class="cb" onclick="pick(this,'equip','dumbbell')"><div class="ico">🎯</div><div class="nm">Dumbbell</div><div class="sx">Tạ đơn</div></div>
+      <div class="cb" onclick="pick(this,'equip','home')"><div class="ico">🏠</div><div class="nm">Home</div><div class="sx">Bodyweight</div></div>
+    </div>
+    <div class="ob-nav">
+      <button class="btn bg" style="width:auto;padding:11px 18px" onclick="obGo(2)">←</button>
+      <button class="btn bl" onclick="obGo(4)">Tiếp theo →</button>
+    </div>
+  </div>
+
+  <div class="ob-step" id="ob4">
+    <div class="ob-title">Thông tin<br>cơ bản</div>
+    <div class="ob-sub">Dùng để AI tính progressive overload và TDEE chính xác.</div>
+    <div class="fg"><label class="lbl">Tên</label><input class="inp" id="ob-name" placeholder="Nguyễn Văn A"></div>
+    <div class="g2">
+      <div class="fg"><label class="lbl">Cân nặng (kg)</label><input class="inp" id="ob-kg" type="number" placeholder="70"></div>
+      <div class="fg"><label class="lbl">Chiều cao (cm)</label><input class="inp" id="ob-cm" type="number" placeholder="170"></div>
+    </div>
+    <div class="fg"><label class="lbl">Tuổi</label><input class="inp" id="ob-age" type="number" placeholder="25"></div>
+    <div class="fg">
+      <label class="lbl">Giới tính</label>
+      <div class="g2">
+        <div class="cb" id="sex-m" onclick="pickSex('male')" style="flex-direction:row;justify-content:center;gap:6px;padding:10px"><div class="ico" style="font-size:16px">♂</div><div class="nm">Nam</div></div>
+        <div class="cb on" id="sex-f" onclick="pickSex('female')" style="flex-direction:row;justify-content:center;gap:6px;padding:10px"><div class="ico" style="font-size:16px">♀</div><div class="nm">Nữ</div></div>
+      </div>
+    </div>
+    <div class="ob-nav">
+      <button class="btn bg" style="width:auto;padding:11px 18px" onclick="obGo(3)">←</button>
+      <button class="btn bl" onclick="finOB()">Bắt đầu 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PLAN DETAIL ═══ -->
+<div id="plan-detail">
+  <div class="pd-hero" id="pd-hero">
+    <div class="pd-hero-bg"><div class="pd-hero-text" id="pd-hero-text">PLAN</div></div>
+    <div class="pd-hero-overlay"></div>
+    <div class="pd-back" onclick="closePlanDetail()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="pd-hero-content">
+      <div id="pd-tags" style="display:flex;gap:5px;margin-bottom:6px"></div>
+    </div>
+  </div>
+  <div class="pd-body">
+    <div class="pd-name" id="pd-name">Plan Name</div>
+    <div class="pd-meta-row" id="pd-meta"></div>
+    <div class="pd-stat-row" id="pd-stats"></div>
+    <button class="btn bl" style="margin-bottom:16px" id="pd-join-btn" onclick="joinPlan()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 12 4 6"/></svg>
+      Tham gia plan này
+    </button>
+
+    <!-- Progressive overload note -->
+    <div class="pd-rest-info" style="margin-bottom:14px">
+      <div class="pd-rest-title">⚡ AI PROGRESSIVE OVERLOAD</div>
+      <div class="pd-rest-desc">AI tự động điều chỉnh weight mỗi buổi dựa trên log của bạn. Không cần tự tính 1RM.</div>
+    </div>
+
+    <!-- Week selector -->
+    <div class="sl">Lịch tập chi tiết</div>
+    <div class="pd-week-tabs" id="pd-week-tabs"></div>
+    <div id="pd-week-content"></div>
+
+    <!-- Description -->
+    <div class="sl" style="margin-top:16px">Về plan này</div>
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:13px;color:var(--txt2);line-height:1.7" id="pd-desc"></div>
+    </div>
+
+    <!-- Equipment needed -->
+    <div class="sl">Thiết bị cần có</div>
+    <div id="pd-equip-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px"></div>
+
+    <button class="btn bl" onclick="joinPlan()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 12 4 6"/></svg>
+      Bắt đầu plan ngay
+    </button>
+  </div>
+</div>
+
+<!-- ═══ EXERCISE SEARCH IN WORKOUT ═══ -->
+<div id="ex-search-modal">
+  <div style="padding:14px 16px;border-bottom:1px solid var(--brd);flex-shrink:0">
+    <div class="rb" style="margin-bottom:10px">
+      <div style="font-size:14px;font-weight:500">Thêm bài tập</div>
+      <button onclick="closeExSearch()" style="background:none;border:none;color:var(--txt2);font-size:22px;cursor:pointer;line-height:1">✕</button>
+    </div>
+    <div style="position:relative">
+      <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--txt3)" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="inp" id="ex-search-inp" placeholder="Tìm bài tập..." style="padding-left:36px" oninput="filterExSearch(this.value)" autofocus>
+    </div>
+  </div>
+  <div class="pill-row" id="ex-search-muscles" style="padding:10px 16px 4px">
+    <button class="pill on" onclick="filterExMuscle('all',this)">Tất cả</button>
+    <button class="pill" onclick="filterExMuscle('chest',this)">Ngực</button>
+    <button class="pill" onclick="filterExMuscle('back',this)">Lưng</button>
+    <button class="pill" onclick="filterExMuscle('shoulders',this)">Vai</button>
+    <button class="pill" onclick="filterExMuscle('upper arms',this)">Bắp tay</button>
+    <button class="pill" onclick="filterExMuscle('upper legs',this)">Đùi</button>
+    <button class="pill" onclick="filterExMuscle('glutes',this)">Mông</button>
+    <button class="pill" onclick="filterExMuscle('core',this)">Core</button>
+  </div>
+  <div class="ex-search-list" id="ex-search-list"></div>
+</div>
+
+<!-- ═══ NOTIFICATION BAR ═══ -->
+<div id="notif-bar">
+  <div class="notif-item" id="notif-content">
+    <div class="notif-icon" id="notif-icon">💪</div>
+    <div>
+      <div class="notif-title" id="notif-title">Thông báo</div>
+      <div class="notif-desc" id="notif-desc"></div>
+    </div>
+    <div class="notif-close" onclick="hideNotif()">✕</div>
+  </div>
+</div>
+
+<!-- ═══ REST TIMER ═══ -->
+<div id="rest-timer">
+  <div class="rt-circle">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+      <circle cx="26" cy="26" r="22" fill="none" stroke="#232323" stroke-width="3"/>
+      <circle cx="26" cy="26" r="22" fill="none" stroke="#c8f135" stroke-width="3"
+        stroke-dasharray="138" stroke-dashoffset="0" id="rt-arc" stroke-linecap="round"/>
+    </svg>
+    <div class="rt-num" id="rt-num">2:00</div>
+  </div>
+  <div class="rt-info">
+    <div class="rt-label">Nghỉ giữa set</div>
+    <div class="rt-status" id="rt-status">Đang đếm ngược...</div>
+  </div>
+  <div class="rt-btns">
+    <button class="rt-btn" onclick="addRestTime(30)">+30s</button>
+    <button class="rt-btn skip" onclick="skipRest()">Bỏ qua</button>
+  </div>
+</div>
+
+<!-- ═══ WORKOUT SUMMARY ═══ -->
+<div id="ws-modal">
+  <div class="ws-hero">
+    <div class="ws-emoji" id="ws-emoji">💪</div>
+    <div class="ws-title" id="ws-title">XONG RỒI!</div>
+    <div class="ws-sub" id="ws-sub">Buổi tập hoàn thành</div>
+  </div>
+  <div class="ws-stats" id="ws-stats"></div>
+  <div class="ws-feel" id="ws-feel">
+    <div class="ws-feel-title">Cảm giác buổi tập?</div>
+    <div class="feel-options">
+      <div class="feel-opt" onclick="selectFeel(this,'easy')"><span class="feel-emoji">😌</span>Nhẹ</div>
+      <div class="feel-opt selected" onclick="selectFeel(this,'ideal')"><span class="feel-emoji">😤</span>Lý tưởng</div>
+      <div class="feel-opt" onclick="selectFeel(this,'hard')"><span class="feel-emoji">🥵</span>Nặng</div>
+      <div class="feel-opt" onclick="selectFeel(this,'max')"><span class="feel-emoji">💀</span>Tối đa</div>
+    </div>
+  </div>
+  <div class="ws-pr-list" id="ws-prs"></div>
+  <div class="ws-insight" id="ws-ai-insight">
+    <div style="background:#1e2e00;border:1px solid #2d4400;border-radius:var(--r);padding:12px">
+      <div style="font-size:9.5px;color:var(--lime);font-family:var(--FM);letter-spacing:.1em;margin-bottom:6px">⚡ AI COACH</div>
+      <div style="font-size:12px;color:#9fd44f;line-height:1.65" id="ws-ai-txt">
+        <span style="opacity:.5">Đang phân tích buổi tập...</span>
+      </div>
+    </div>
+  </div>
+  <div class="ws-actions">
+    <button class="btn bl" onclick="closeWS()">Về trang chủ →</button>
+    <div class="ws-share" onclick="shareWorkout()">
+      <svg style="width:14px;height:14px;vertical-align:-2px;margin-right:5px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Chia sẻ kết quả
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAYWALL ═══ -->
+<div id="pw">
+  <div class="pw-h">
+    <div style="font-family:var(--FD);font-size:20px;letter-spacing:.06em">FIT<span style="color:var(--lime)">AI</span> <span style="background:var(--lime);color:#111;font-size:9px;padding:2px 7px;border-radius:4px;vertical-align:middle;font-weight:700;font-family:var(--FM)">PRO</span></div>
+    <div class="pw-close" onclick="closePW()">✕</div>
+  </div>
+  <div class="pw-body">
+    <div style="margin-bottom:20px">
+      <div class="pw-title">UNLOCK<br>ALL</div>
+      <div class="pw-sub">AI Coach đầy đủ. Giải quyết mọi vấn đề Nudges Me còn thiếu.</div>
+    </div>
+    <div class="ppc on" id="pw-yr" onclick="selPlan('yr')">
+      <div class="ck">✓</div>
+      <div class="row" style="gap:6px;margin-bottom:3px"><span class="ppc-name">Năm</span><span class="off-tag">50% OFF</span></div>
+      <div class="ppc-price">1.499.000₫<span style="font-size:12px;color:var(--txt2)">/năm</span></div>
+      <div class="ppc-note">= 124.917₫/tháng</div>
+      <div class="ppc-orig">Gốc: 2.999.000₫</div>
+    </div>
+    <div class="ppc" id="pw-mo" onclick="selPlan('mo')">
+      <div class="ck"></div>
+      <div class="ppc-name" style="margin-bottom:3px">Tháng</div>
+      <div class="ppc-price">249.000₫<span style="font-size:12px;color:var(--txt2)">/tháng</span></div>
+      <div class="ppc-note">Hủy bất cứ lúc nào</div>
+    </div>
+    <div style="margin-top:18px">
+      <div class="feat-row"><div class="feat-ico">🤖</div><div><div class="feat-title">AI Progressive Overload</div><div class="feat-desc">Tự động tính weight/reps mỗi set. Không cần tự nhớ 1RM.</div></div></div>
+      <div class="feat-row"><div class="feat-ico">🍽️</div><div><div class="feat-title">AI Nutrition & Meal plan</div><div class="feat-desc">Meal plan từ đồ ăn VN, sync với plan tập. Nudges Me chưa có.</div></div></div>
+      <div class="feat-row"><div class="feat-ico">💬</div><div><div class="feat-title">AI Chat Coach tiếng Việt</div><div class="feat-desc">Hỏi mọi thứ về gym, dinh dưỡng, kỹ thuật bằng tiếng Việt.</div></div></div>
+      <div class="feat-row"><div class="feat-ico">📊</div><div><div class="feat-title">Progress Analytics + Compare</div><div class="feat-desc">Xem tiến độ strength, body measurements, so sánh vs buổi trước.</div></div></div>
+      <div class="feat-row"><div class="feat-ico">🎥</div><div><div class="feat-title">Form Guide AI</div><div class="feat-desc">Hướng dẫn kỹ thuật đúng cho mỗi bài tập với coaching cues.</div></div></div>
+    </div>
+    <div class="guar"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Không thanh toán ngay · Hủy bất cứ lúc</div>
+    <button class="btn bl" style="font-size:15px;padding:15px" onclick="doSubscribe()">Dùng thử 7 ngày MIỄN PHÍ</button>
+    <div style="text-align:center;font-size:11px;color:var(--txt3);margin-top:8px" id="pw-note">Sau đó 1.499.000₫/năm · Hủy bất cứ lúc nào</div>
+    <div style="text-align:center;font-size:11px;color:var(--txt3);margin-top:16px;padding-top:16px;border-top:1px solid var(--brd)">🔒 Thanh toán qua Stripe · 14 ngày hoàn tiền</div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+
+  <!-- HOME -->
+  <div class="screen active" id="s-home">
+    <div class="ph">
+      <div>
+        <div class="ph-sub" id="h-date">Hôm nay</div>
+        <div class="phh" id="h-name">FIT<span>AI</span></div>
+      </div>
+      <button class="btn bg bsm" onclick="showPW()" id="upgrade-btn" style="gap:5px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Pro
+      </button>
+    </div>
+    <div class="px" style="padding-bottom:18px">
+      <!-- Streak + stats -->
+      <div class="card row" style="gap:14px;margin-bottom:14px">
+        <div class="sring">
+          <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="33" fill="none" stroke="#1f1f1f" stroke-width="5"/><circle cx="40" cy="40" r="33" fill="none" stroke="#c8f135" stroke-width="5" stroke-dasharray="207" stroke-dashoffset="207" stroke-linecap="round" id="sring-c"/></svg>
+          <div class="sv2"><div class="num" id="h-streak">0</div><div class="sub">streak</div></div>
+        </div>
+        <div style="flex:1">
+          <div class="g2">
+            <div class="sb"><div class="sv" style="font-size:22px" id="h-tot">0</div><div class="sk">Buổi</div></div>
+            <div class="sb"><div class="sv" style="font-size:22px" id="h-vol">0</div><div class="sk">Tổng kg</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly calendar -->
+      <div class="sl">Tuần này</div>
+      <div class="week-cal" id="week-cal"></div>
+
+      <!-- Today plan -->
+      <div class="sl">Buổi tập hôm nay</div>
+      <div id="h-today"></div>
+
+      <!-- AI Insight -->
+      <div class="sl">AI Insight</div>
+      <div class="card">
+        <div class="row" style="gap:5px;margin-bottom:7px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span class="xs mono" style="color:var(--lime);letter-spacing:.1em">AI COACH</span>
+        </div>
+        <div style="font-size:12.5px;color:var(--txt2);line-height:1.65" id="h-insight">Nhấn bên dưới để nhận insight cá nhân từ AI...</div>
+        <button class="btn bg" style="margin-top:10px;font-size:12px;height:34px" onclick="getInsight()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Nhận AI insight hôm nay
+        </button>
+      </div>
+
+      <!-- Recent -->
+      <div class="sl">Gần đây</div>
+      <div id="h-hist"><div class="muted sm">Chưa có buổi tập nào.</div></div>
+    </div>
+  </div>
+
+  <!-- WORKOUT -->
+  <div class="screen" id="s-workout">
+    <div id="w-idle">
+      <div class="ph"><div class="phh">Tập <span>luyện</span></div></div>
+      <div class="px" style="padding-bottom:18px">
+        <button class="btn bl" style="margin-bottom:8px" onclick="startW()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Bắt đầu buổi tập
+        </button>
+        <button class="btn bg" onclick="goTab('s-plan')">Chọn từ plan</button>
+        <button class="btn bg" style="margin-top:8px" onclick="window.location.href='exercises.html'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          Xem thư viện bài tập & Form Guide
+        </button>        <div class="sl">Lịch sử</div>
+        <div id="w-hist"><div class="muted sm">Chưa có buổi tập nào.</div></div>
+      </div>
+    </div>
+    <div id="w-active" style="display:none;flex-direction:column;height:100%">
+      <div class="wtb">
+        <div>
+          <div style="font-size:13.5px;font-weight:500" id="aw-ttl">Buổi tập</div>
+          <div class="mono xs" style="color:var(--lime)" id="aw-tmr">00:00</div>
+        </div>
+        <div class="row">
+          <div style="text-align:right;margin-right:4px">
+            <div class="xs muted" id="aw-vol">0 kg</div>
+            <div class="xs muted">volume</div>
+          </div>
+          <button class="btn bl bsm" onclick="finW()">Xong ✓</button>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:12px 18px 18px" id="aw-cont">
+        <div id="aw-exes"></div>
+        <button class="btn bg" onclick="openExSearch()" style="margin-top:6px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Thêm bài tập
+        </button>
+        <div class="card" style="margin-top:12px">
+          <div class="row" style="gap:5px;margin-bottom:5px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span class="xs mono" style="color:var(--lime);letter-spacing:.1em">LIVE AI COACH</span>
+          </div>
+          <div class="xs muted" style="line-height:1.6" id="live-ai">Log set để nhận gợi ý từ AI...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAN -->
+  <div class="screen" id="s-plan">
+    <div class="ph"><div class="phh">Kho <span>Plan</span></div></div>
+    <div class="pill-row" id="plan-pills">
+      <button class="pill on" onclick="filterPlan('all',this)">Tất cả</button>
+      <button class="pill" onclick="filterPlan('beginner',this)">Beginner 🌱</button>
+      <button class="pill" onclick="filterPlan('intermediate',this)">Intermediate 🔶</button>
+      <button class="pill" onclick="filterPlan('advanced',this)">Advanced 🏆</button>
+      <button class="pill" onclick="filterPlan('female',this)">Cho nữ ♀</button>
+      <button class="pill" onclick="filterPlan('home',this)">Home 🏠</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:0 18px 18px" id="plan-list"></div>
+  </div>
+
+  <!-- AI COACH -->
+  <div class="screen" id="s-ai" style="padding-bottom:0">
+    <div class="ph" style="flex-shrink:0"><div class="phh">AI <span>Coach</span></div><span style="background:var(--lime);color:#111;font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;font-family:var(--FM)">Claude AI</span></div>
+    <div class="chat-area" id="chat-msgs">
+      <div class="bub ai">
+        <div class="ai-lbl">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          AI COACH
+        </div>
+        Xin chào! Mình là AI Coach của bạn — hoàn toàn bằng tiếng Việt 🇻🇳<br><br>
+        Mình giải quyết được:<br>
+        💪 Gợi ý weight/set chính xác<br>
+        🔄 Bài thay thế khi thiết bị bận<br>
+        🍽️ Meal plan từ đồ ăn Việt<br>
+        📊 Phân tích tiến độ của bạn<br>
+        🎯 Form cue cho từng động tác<br><br>
+        Bạn muốn hỏi gì?
+      </div>
+    </div>
+    <div class="quick-q">
+      <div class="qq" onclick="qq('Gợi ý tăng tạ bench press cho intermediate 75kg')">Tăng tạ bench</div>
+      <div class="qq" onclick="qq('Nữ 55kg muốn tăng cơ, nên dùng plan nào và ăn gì?')">Plan cho nữ</div>
+      <div class="qq" onclick="qq('Bài thay thế barbell squat khi rack bận, tôi có dumbbell')">Swap bài</div>
+      <div class="qq" onclick="qq('Tạo meal plan tăng cơ 1 ngày cho người Việt Nam 70kg')">Meal plan</div>
+      <div class="qq" onclick="qq('Kỹ thuật hip thrust đúng, các lỗi sai thường gặp')">Form guide</div>
+    </div>
+    <div class="chat-inp-wrap">
+      <input class="inp" id="chat-in" placeholder="Hỏi AI Coach..." style="flex:1;padding:9px 13px" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="btn bl" style="width:42px;height:42px;padding:0;flex-shrink:0" onclick="sendChat()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="screen" id="s-progress">
+    <div class="ph"><div class="phh">Tiến <span>độ</span></div></div>
+    <div style="flex:1;overflow-y:auto;padding:0 18px 18px">
+      <!-- Strength chart -->
+      <div class="sl">Strength Progression</div>
+      <div class="chart-wrap">
+        <div class="rb"><div><div class="chart-title">Bench Press</div><div class="chart-sub">6 tuần qua · Estimated 1RM</div></div><span class="tag tl">+12.5kg</span></div>
+        <svg class="chart-svg" height="90" viewBox="0 0 320 90" id="bench-chart">
+          <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c8f135" stop-opacity=".25"/><stop offset="100%" stop-color="#c8f135" stop-opacity="0"/></linearGradient></defs>
+          <path id="bench-area" fill="url(#cg)"/>
+          <path id="bench-line" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round"/>
+          <g id="bench-pts"></g>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--txt3);font-family:var(--FM);margin-top:4px" id="bench-labels"></div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="rb"><div><div class="chart-title">Squat</div><div class="chart-sub">6 tuần qua · Estimated 1RM</div></div><span class="tag tl">+17.5kg</span></div>
+        <svg class="chart-svg" height="90" viewBox="0 0 320 90" id="squat-chart">
+          <path id="squat-area" fill="url(#cg)"/>
+          <path id="squat-line" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round"/>
+          <g id="squat-pts"></g>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--txt3);font-family:var(--FM);margin-top:4px" id="squat-labels"></div>
+      </div>
+
+      <!-- Body measurements -->
+      <div class="sl">Số đo cơ thể</div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="meas-row"><div class="meas-icon">⚖️</div><div class="meas-label">Cân nặng</div><div><div class="meas-val" id="m-weight">--</div><div class="meas-change" id="m-weight-c"></div></div></div>
+        <div class="meas-row"><div class="meas-icon">💪</div><div class="meas-label">Bắp tay</div><div><div class="meas-val" id="m-arm">--</div><div class="meas-change" id="m-arm-c"></div></div></div>
+        <div class="meas-row"><div class="meas-icon">🫁</div><div class="meas-label">Ngực</div><div><div class="meas-val" id="m-chest">--</div><div class="meas-change" id="m-chest-c"></div></div></div>
+        <div class="meas-row"><div class="meas-icon">🔄</div><div class="meas-label">Eo</div><div><div class="meas-val" id="m-waist">--</div><div class="meas-change" id="m-waist-c"></div></div></div>
+        <div class="meas-row"><div class="meas-icon">🦵</div><div class="meas-label">Đùi</div><div><div class="meas-val" id="m-thigh">--</div><div class="meas-change" id="m-thigh-c"></div></div></div>
+      </div>
+      <button class="btn bg" onclick="openMeasForm()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Cập nhật số đo
+      </button>
+
+      <!-- Form guide -->
+      <div class="sl">Form Guide AI</div>
+      <div id="form-guide-list"></div>
+
+      <!-- Achievements -->
+      <div class="sl">Thành tích</div>
+      <div class="ach-grid" id="ach-grid"></div>
+
+      <!-- Monthly Calendar -->
+      <div class="sl" style="margin-top:18px">Lịch tháng này</div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="rb" style="margin-bottom:10px">
+          <div style="font-size:13px;font-weight:500" id="cal-month-lbl">Tháng 6, 2026</div>
+          <div class="row">
+            <div class="row xs muted" style="gap:4px"><div style="width:7px;height:7px;border-radius:50%;background:var(--lime)"></div>Tập</div>
+            <div style="width:12px"></div>
+            <div class="row xs muted" style="gap:4px"><div style="width:7px;height:7px;border-radius:50%;background:var(--red)"></div>Bỏ</div>
+          </div>
+        </div>
+        <div class="cal-header">
+          <div class="cal-day-lbl">T2</div><div class="cal-day-lbl">T3</div><div class="cal-day-lbl">T4</div>
+          <div class="cal-day-lbl">T5</div><div class="cal-day-lbl">T6</div><div class="cal-day-lbl">T7</div><div class="cal-day-lbl">CN</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+
+      <!-- AI weekly review -->
+      <div class="sl">AI phân tích tuần này</div>
+      <div class="card">
+        <div class="row" style="gap:5px;margin-bottom:8px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span class="xs mono" style="color:var(--lime)">AI WEEKLY REVIEW</span>
+        </div>
+        <div class="xs muted" style="line-height:1.7" id="weekly-review">Nhấn để AI phân tích tuần tập luyện của bạn...</div>
+        <button class="btn bg" style="margin-top:10px;height:34px;font-size:12px" onclick="getWeeklyReview()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Nhận AI review
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUTRITION TRACKER (full) -->
+  <div class="screen" id="s-nutrition">
+    <div class="ph"><div class="phh">Dinh <span>dưỡng</span></div></div>
+    <div style="flex:1;overflow-y:auto;padding:0 18px 18px">
+      <div class="sl">Hôm nay</div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="rb" style="margin-bottom:10px">
+          <div style="font-size:13px;font-weight:500">Mục tiêu calo</div>
+          <span class="tag tl" id="nut-cal-tag">0 / 2,400 kcal</span>
+        </div>
+        <div class="pb" style="margin-bottom:12px"><div class="pf" id="nut-cal-bar" style="width:0%"></div></div>
+        <div class="g3">
+          <div class="sb"><div class="sv" style="font-size:18px" id="nut-p">0g</div><div class="sk">Protein</div></div>
+          <div class="sb"><div class="sv" style="font-size:18px;color:var(--amber)" id="nut-c">0g</div><div class="sk">Carbs</div></div>
+          <div class="sb"><div class="sv" style="font-size:18px;color:var(--blue)" id="nut-f">0g</div><div class="sk">Fat</div></div>
+        </div>
+      </div>
+      <button class="btn bl" style="margin-bottom:12px" onclick="genMealPlan()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        AI tạo meal plan hôm nay
+      </button>
+      <div class="nut-meal" style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:13px;margin-bottom:9px">
+        <div class="rb" style="margin-bottom:8px"><span style="font-size:13px;font-weight:500">🌅 Bữa sáng</span><span style="font-size:11px;color:var(--lime);font-family:var(--FM)" id="nut-b-cal">0 kcal</span></div>
+        <div id="nut-b-foods"><div class="xs muted">Chưa có món — nhấn thêm hoặc dùng AI</div></div>
+        <div class="add-food-btn" onclick="addFood('b')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Thêm món</div>
+      </div>
+      <div class="nut-meal" style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:13px;margin-bottom:9px">
+        <div class="rb" style="margin-bottom:8px"><span style="font-size:13px;font-weight:500">☀️ Bữa trưa</span><span style="font-size:11px;color:var(--lime);font-family:var(--FM)" id="nut-l-cal">0 kcal</span></div>
+        <div id="nut-l-foods"><div class="xs muted">Chưa có món</div></div>
+        <div class="add-food-btn" onclick="addFood('l')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Thêm món</div>
+      </div>
+      <div class="nut-meal" style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);padding:13px;margin-bottom:9px">
+        <div class="rb" style="margin-bottom:8px"><span style="font-size:13px;font-weight:500">🌙 Bữa tối</span><span style="font-size:11px;color:var(--lime);font-family:var(--FM)" id="nut-d-cal">0 kcal</span></div>
+        <div id="nut-d-foods"><div class="xs muted">Chưa có món</div></div>
+        <div class="add-food-btn" onclick="addFood('d')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Thêm món</div>
+      </div>
+      <div id="nut-ai-output" style="display:none">
+        <div class="sl">AI Meal Plan</div>
+        <div class="card">
+          <div class="row" style="gap:5px;margin-bottom:8px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c8f135" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span class="xs mono" style="color:var(--lime)">AI COACH</span></div>
+          <div class="xs muted" style="line-height:1.8" id="nut-ai-txt"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="s-profile">
+    <div class="ph"><div class="phh">Hồ <span>sơ</span></div></div>
+    <div style="flex:1;overflow-y:auto;padding:0 18px 18px">
+      <!-- Avatar + pro badge -->
+      <div class="card rb" style="margin-bottom:14px">
+        <div class="row" style="gap:12px">
+          <div class="avatar" id="p-avatar">?</div>
+          <div>
+            <div style="font-size:15px;font-weight:500" id="p-name-disp">Lifter</div>
+            <div class="xs muted" id="p-meta">--</div>
+            <div id="p-pro-badge" style="display:none;margin-top:5px"><span class="pro-badge">PRO</span></div>
+          </div>
+        </div>
+        <button class="btn bg bsm" onclick="showPW()" id="p-upgrade" style="flex-shrink:0">Nâng cấp</button>
+      </div>
+
+      <div class="sl">Thông tin</div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="fg"><label class="lbl">Tên</label><input class="inp" id="p-name" placeholder="Tên của bạn" oninput="autoSaveProfile()"></div>
+        <div class="g2">
+          <div class="fg"><label class="lbl">Cân nặng (kg)</label><input class="inp" id="p-kg" type="number" placeholder="70" oninput="autoSaveProfile()"></div>
+          <div class="fg"><label class="lbl">Chiều cao (cm)</label><input class="inp" id="p-cm" type="number" placeholder="170" oninput="autoSaveProfile()"></div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label class="lbl">Tuổi</label><input class="inp" id="p-age" type="number" placeholder="25" oninput="autoSaveProfile()"></div>
+          <div class="fg"><label class="lbl">Buổi/tuần</label><select class="inp" id="p-days" onchange="autoSaveProfile()"><option value="3">3x</option><option value="4" selected>4x</option><option value="5">5x</option><option value="6">6x</option></select></div>
+        </div>
+        <div class="fg"><label class="lbl">Mục tiêu</label>
+          <select class="inp" id="p-goal" onchange="autoSaveProfile()">
+            <option value="muscle">Tăng cơ / Hypertrophy</option>
+            <option value="strength">Tăng sức mạnh</option>
+            <option value="fat">Giảm mỡ</option>
+            <option value="general">Sức khỏe tổng quát</option>
+          </select>
+        </div>
+        <div class="fg"><label class="lbl">Trình độ</label>
+          <select class="inp" id="p-level" onchange="autoSaveProfile()">
+            <option value="beginner">Beginner</option>
+            <option value="intermediate" selected>Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+        <div class="fg"><label class="lbl">Thiết bị</label>
+          <select class="inp" id="p-equip" onchange="autoSaveProfile()">
+            <option value="full">Full gym</option>
+            <option value="barbell">Barbell + Rack</option>
+            <option value="dumbbell">Dumbbell only</option>
+            <option value="home">Home / Bodyweight</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sl">Menu</div>
+      <div class="card">
+        <div class="menu-item" onclick="goTab('s-progress')"><div class="menu-icon">📊</div><div class="menu-label">Tiến độ & số đo</div><div class="menu-arrow">›</div></div>
+        <div class="menu-item" onclick="goTab('s-plan')"><div class="menu-icon">📋</div><div class="menu-label">Kho plan</div><div class="menu-arrow">›</div></div>
+        <div class="menu-item" onclick="window.location.href='exercises.html'"><div class="menu-icon">🎬</div><div class="menu-label">Thư viện bài tập & Form Guide</div><div class="menu-arrow" style="color:var(--lime)">›</div></div>
+        <div class="menu-item" onclick="showPW()"><div class="menu-icon">⚡</div><div class="menu-label">Nâng cấp Pro</div><div class="menu-arrow" style="color:var(--lime)">›</div></div>
+        <div class="menu-item" onclick="window.open('index.html','_blank')"><div class="menu-icon">🌐</div><div class="menu-label">Về FitAI</div><div class="menu-arrow">›</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bnav">
+    <button class="bni on" onclick="goTab('s-home')" id="bn-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Trang chủ
+    </button>
+    <button class="bni" onclick="goTab('s-workout')" id="bn-workout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      Tập luyện
+    </button>
+    <button class="bni" onclick="goTab('s-plan')" id="bn-plan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Plan
+    </button>
+    <button class="bni" onclick="goTab('s-ai')" id="bn-ai">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      AI Coach
+    </button>
+    <button class="bni" onclick="goTab('s-progress')" id="bn-progress">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Tiến độ
+    </button>
+  </nav>
+</div>
+
+<!-- MEASUREMENTS MODAL -->
+<div id="meas-modal" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.9);padding:20px;overflow-y:auto;max-width:430px;margin:0 auto">
+  <div style="background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-xl);padding:20px;max-width:400px;margin:0 auto">
+    <div class="rb" style="margin-bottom:16px">
+      <div style="font-family:var(--FD);font-size:24px;letter-spacing:.04em">Số đo cơ thể</div>
+      <button onclick="closeMeasForm()" style="background:none;border:none;color:var(--txt2);font-size:22px;cursor:pointer">✕</button>
+    </div>
+    <div class="g2">
+      <div class="fg"><label class="lbl">Cân nặng (kg)</label><input class="inp" id="mm-weight" type="number" placeholder="70"></div>
+      <div class="fg"><label class="lbl">Bắp tay (cm)</label><input class="inp" id="mm-arm" type="number" placeholder="32"></div>
+      <div class="fg"><label class="lbl">Ngực (cm)</label><input class="inp" id="mm-chest" type="number" placeholder="90"></div>
+      <div class="fg"><label class="lbl">Eo (cm)</label><input class="inp" id="mm-waist" type="number" placeholder="75"></div>
+      <div class="fg"><label class="lbl">Hông (cm)</label><input class="inp" id="mm-hip" type="number" placeholder="90"></div>
+      <div class="fg"><label class="lbl">Đùi (cm)</label><input class="inp" id="mm-thigh" type="number" placeholder="55"></div>
+    </div>
+    <button class="btn bl" onclick="saveMeas()">Lưu số đo</button>
+  </div>
+</div>
+
+<script>
+// ═══════ STATE ═══════
+const S={
+  isPro:false,
+  ob:{goal:'muscle',level:'intermediate',equip:'full',sex:'female'},
+  profile:{name:'',kg:70,cm:170,age:25,days:4,goal:'muscle',level:'intermediate',equip:'full',sex:'female'},
+  workouts:[],
+  activeW:null,timerInt:null,timerSec:0,
+  exCtr:0,exData:{},
+  chatHist:[],
+  currentPlan:null,
+  measurements:[],
+  stats:{streak:0,total:0,volume:0,pr:0},
+  weekDone:[false,false,false,false,false,false,false]
+};
+
+const PLANS=[
+  {id:1,name:'Starting Strength 3×5',lvl:'beginner',goal:'strength',days:3,eq:'barbell',female:false,desc:'Linear progression cổ điển. Tối ưu tăng sức mạnh cho người mới.',exs:['Barbell Squat','Bench Press','Deadlift','Overhead Press','Barbell Row'],color:'#0d1e33',acc:'#4d9fff'},
+  {id:2,name:'Upper Lower — 4 ngày',lvl:'beginner',goal:'muscle',days:4,eq:'full',female:false,desc:'Split phù hợp sau khi hết gói PT. 4 ngày, cân bằng volume.',exs:['Bench Press','DB Row','Shoulder Press','Squat','Romanian DL','Leg Curl'],color:'#1e2e00',acc:'#c8f135'},
+  {id:3,name:'PPL — Push Pull Legs',lvl:'intermediate',goal:'muscle',days:6,eq:'full',female:false,desc:'Classic 6 ngày PPL. Volume cao cho hypertrophy.',exs:['Bench','Incline DB','Lateral Raise','Pull-up','Barbell Row','Squat','Leg Press'],color:'#1a1000',acc:'#ffb84d'},
+  {id:4,name:'5/3/1 Wendler',lvl:'intermediate',goal:'strength',days:4,eq:'barbell',female:false,desc:'Powerlifting methodology. Progressive overload dài hạn.',exs:['Squat','Deadlift','Bench Press','Overhead Press'],color:'#1a0000',acc:'#ff4545'},
+  {id:5,name:'Strong Curves — Nữ',lvl:'beginner',goal:'muscle',days:3,eq:'full',female:true,desc:'Calibrate riêng cho nữ. Glutes & lower body focus. Rest time phù hợp.',exs:['Hip Thrust','Squat','Romanian DL','Glute Bridge','Lateral Band Walk'],color:'#1e0015',acc:'#ff6eb4'},
+  {id:6,name:'Home Dumbbell 3×',lvl:'beginner',goal:'general',days:3,eq:'home',female:false,desc:'Full body tại nhà với dumbbell. Không cần gym.',exs:['DB Bench','DB Row','DB Squat','DB Shoulder Press','DB Curl','DB Tricep'],color:'#0d1e33',acc:'#4d9fff'},
+  {id:7,name:'Powerlifting Prep',lvl:'advanced',goal:'strength',days:5,eq:'barbell',female:false,desc:'RPE-based high volume. Competition prep.',exs:['Squat','Bench','Deadlift','Paused Squat','Close Grip Bench'],color:'#1a0000',acc:'#ff4545'},
+  {id:8,name:'Hypertrophy — 4 ngày',lvl:'intermediate',goal:'muscle',days:4,eq:'full',female:false,desc:'Volume & intensity tối ưu tăng cơ toàn thân.',exs:['Bench','Incline','Squat','Leg Press','Hip Thrust','Pull-up','DB Row'],color:'#1e2e00',acc:'#c8f135'},
+];
+const EX_DB=['Barbell Squat','Bench Press','Deadlift','Overhead Press','Barbell Row','Pull-up','Dumbbell Curl','Tricep Dip','Leg Press','Romanian Deadlift','Hip Thrust','Lateral Raise','Cable Fly','Face Pull','Leg Curl','Calf Raise','Incline DB Press','DB Row','Bulgarian Split Squat','Glute Bridge','Smith Machine Squat','Hack Squat','Cable Row','Pec Deck'];
+const FORM_GUIDES=[
+  {name:'Barbell Squat',cues:['Chân rộng bằng vai, mũi chân hướng ngoài 15-30°','Đẩy gối ra ngoài theo hướng mũi chân','Giữ ngực ưỡn, nhìn thẳng hoặc hơi lên','Hạ xuống đến khi đùi song song sàn hoặc thấp hơn']},
+  {name:'Bench Press',cues:['Lưng uốn nhẹ, vai kẹp xuống vào bench','Grip rộng hơn vai một nắm tay','Hạ bar đến ngực dưới, khuỷu tay ~45°','Đẩy theo đường chéo ra phía trước']},
+  {name:'Hip Thrust',cues:['Upper back tựa vào bench, không phải vai','Đặt bar ở crease hông, dùng pad','Đẩy hông thẳng lên, squeeze glutes ở trên','Chin tuck — không ngửa cổ']},
+  {name:'Deadlift',cues:['Bar sát ống chân, vai hơi trước bar','Hít thở sâu, brace bụng trước khi kéo','Đẩy sàn ra xa — không phải kéo bar lên','Hông và vai cùng tốc độ lên']},
+];
+
+// ═══════ ONBOARDING ═══════
+function pick(el,type,val){
+  el.closest('[id$="-c"],.cg').querySelectorAll('.cb').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  S.ob[type]=val;
+}
+function pickSex(s){
+  S.ob.sex=s;
+  document.getElementById('sex-m').classList.toggle('on',s==='male');
+  document.getElementById('sex-f').classList.toggle('on',s==='female');
+}
+function obGo(n){
+  document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('on'));
+  document.getElementById('ob'+n).classList.add('on');
+  document.querySelectorAll('.ob-d').forEach((d,i)=>d.classList.toggle('on',i<n));
+}
+function skipOB(){
+  document.getElementById('ob').style.display='none';
+  document.getElementById('app').style.display='flex';
+  initApp();
+}
+function finOB(){
+  S.profile.name=document.getElementById('ob-name').value||'Lifter';
+  S.profile.kg=+document.getElementById('ob-kg').value||70;
+  S.profile.cm=+document.getElementById('ob-cm').value||170;
+  S.profile.age=+document.getElementById('ob-age').value||25;
+  Object.assign(S.profile,S.ob);
+  // sync form fields
+  document.getElementById('p-name').value=S.profile.name;
+  document.getElementById('p-kg').value=S.profile.kg;
+  document.getElementById('p-cm').value=S.profile.cm;
+  document.getElementById('p-age').value=S.profile.age;
+  document.getElementById('p-goal').value=S.profile.goal;
+  document.getElementById('p-level').value=S.profile.level;
+  document.getElementById('p-equip').value=S.profile.equip;
+  // pick plan
+  const matches=PLANS.filter(p=>p.lvl===S.profile.level||(S.profile.sex==='female'&&p.female));
+  if(matches.length)S.currentPlan=matches[0];
+  document.getElementById('ob').style.display='none';
+  document.getElementById('app').style.display='flex';
+  initApp();
+  saveState();
+  toast('Chào '+S.profile.name+'! Plan đã sẵn sàng 🎉');
+}
+
+// ═══════ TABS ═══════
+function goTab(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.bni').forEach(b=>b.classList.remove('on'));
+  document.getElementById(id).classList.add('active');
+  const map={'s-home':'bn-home','s-workout':'bn-workout','s-plan':'bn-plan','s-ai':'bn-ai','s-progress':'bn-progress'};
+  if(map[id])document.getElementById(map[id]).classList.add('on');
+  if(id==='s-home')renderHome();
+  if(id==='s-workout')renderWHist();
+  if(id==='s-progress')renderProgress();
+  if(id==='s-plan')renderPlans('all');
+  if(id==='s-profile')syncProfileForm();
+}
+
+// ═══════ INIT APP ═══════
+function initApp(){
+  renderHome();
+  renderPlans('all');
+  renderFormGuides();
+  renderCharts();
+  renderWeekCal();
+  renderCalendar();
+  renderAchievements();
+  renderNutrition();
+  S.achievements=[];
+}
+
+// ═══════ HOME ═══════
+function renderHome(){
+  const p=S.profile;
+  if(p.name)document.getElementById('h-name').innerHTML=p.name.split(' ').pop()+'<span>.</span>';
+  const d=new Date();
+  document.getElementById('h-date').textContent=d.toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('h-streak').textContent=S.stats.streak;
+  document.getElementById('h-tot').textContent=S.stats.total;
+  const v=S.stats.volume;
+  document.getElementById('h-vol').textContent=v>999?(v/1000).toFixed(1)+'k':v;
+  // streak ring
+  const pct=Math.min(S.stats.streak/30,1);
+  const c=document.getElementById('sring-c');
+  if(c)c.style.strokeDashoffset=207*(1-pct);
+  // today plan card
+  const tc=document.getElementById('h-today');
+  if(S.currentPlan){
+    const pl=S.currentPlan;
+    tc.innerHTML=`<div class="card" style="border-color:${pl.acc}33">
+      <div class="rb" style="margin-bottom:10px">
+        <div><div style="font-size:14px;font-weight:500">${pl.name}</div><div class="xs muted" style="margin-top:2px">${pl.exs.slice(0,3).join(' · ')}${pl.exs.length>3?' +'+(pl.exs.length-3):''}</div></div>
+        <span class="tag tl">${pl.days}x/tuần</span>
+      </div>
+      <button class="btn bl" style="font-size:13px" onclick="startPlanW()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Bắt đầu ngay
+      </button>
+    </div>`;
+  } else {
+    tc.innerHTML=`<div class="card" style="text-align:center;padding:20px">
+      <div style="font-size:32px;margin-bottom:8px">🏋️</div>
+      <div class="xs muted">Chưa có plan — chọn plan phù hợp</div>
+      <button class="btn bg" style="margin-top:10px;height:36px;font-size:12px" onclick="goTab('s-plan')">Chọn plan</button>
+    </div>`;
+  }
+  // history
+  const hl=document.getElementById('h-hist');
+  if(!S.workouts.length){hl.innerHTML='<div class="xs muted">Chưa có buổi tập nào.</div>';return;}
+  hl.innerHTML=S.workouts.slice(0,3).map(w=>`<div class="csm rb" style="margin-bottom:6px"><div><div style="font-size:13px;font-weight:500">${w.title}</div><div class="xs muted">${w.date} · ${w.dur}ph</div></div><span class="tag tl">${w.vol}kg</span></div>`).join('');
+  if(S.isPro)document.getElementById('upgrade-btn').style.display='none';
+}
+
+// ═══════ WEEKLY CAL ═══════
+function renderWeekCal(){
+  const days=['T2','T3','T4','T5','T6','T7','CN'];
+  const todayIdx=new Date().getDay();
+  const mapped=(todayIdx===0)?6:todayIdx-1;
+  document.getElementById('week-cal').innerHTML=days.map((d,i)=>`
+    <div class="wday">
+      <div class="wday-lbl">${d}</div>
+      <div class="wday-dot ${i<mapped&&S.weekDone[i]?'done':i===mapped?'today':i<mapped?'rest':''}" onclick="toggleDay(${i})" id="wd-${i}">${i<mapped?'✓':i===mapped?'●':''}</div>
+    </div>`).join('');
+}
+function toggleDay(i){
+  S.weekDone[i]=!S.weekDone[i];
+  renderWeekCal();
+}
+
+// ═══════ AI INSIGHT ═══════
+async function getInsight(){
+  const el=document.getElementById('h-insight');
+  el.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';
+  const p=`Hồ sơ: ${S.profile.name}, ${S.profile.kg}kg, ${S.profile.level}, mục tiêu ${S.profile.goal}, ${S.profile.days}x/tuần. Stats: ${S.stats.total} buổi, streak ${S.stats.streak}, volume ${S.stats.volume}kg. Cho 1 insight ngắn (2-3 câu) về training hoặc recovery hôm nay. Tiếng Việt, thực tế, có con số cụ thể.`;
+  el.textContent=await callAI(p,300);
+}
+
+// ═══════ WEEKLY REVIEW ═══════
+async function getWeeklyReview(){
+  const el=document.getElementById('weekly-review');
+  el.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';
+  const p=`Người dùng: ${S.profile.name}, ${S.profile.level}, mục tiêu ${S.profile.goal}. Tuần này: ${S.stats.total} buổi tập tổng, streak ${S.stats.streak} ngày, volume tổng ${S.stats.volume}kg. Phân tích ngắn gọn (3-4 câu) về tuần tập luyện, 1 điểm tốt và 1 điểm cần cải thiện. Tiếng Việt.`;
+  el.innerHTML=(await callAI(p,400)).replace(/\n/g,'<br>');
+}
+
+// ═══════ WORKOUT ═══════
+function startW(){
+  S.activeW={title:'Buổi tập tự do',start:Date.now()};
+  S.exData={};S.exCtr=0;
+  document.getElementById('w-idle').style.display='none';
+  document.getElementById('w-active').style.display='flex';
+  document.getElementById('aw-ttl').textContent='Buổi tập tự do';
+  document.getElementById('aw-exes').innerHTML='';
+  startTimer();addEx();
+}
+function startPlanW(){
+  if(!S.currentPlan){toast('Chưa chọn plan');return;}
+  S.activeW={title:S.currentPlan.name,start:Date.now()};
+  S.exData={};S.exCtr=0;
+  document.getElementById('w-idle').style.display='none';
+  document.getElementById('w-active').style.display='flex';
+  document.getElementById('aw-ttl').textContent=S.currentPlan.name;
+  document.getElementById('aw-exes').innerHTML='';
+  S.currentPlan.exs.slice(0,4).forEach(addExByName);
+  startTimer();goTab('s-workout');
+}
+function startTimer(){
+  S.timerSec=0;
+  if(S.timerInt)clearInterval(S.timerInt);
+  S.timerInt=setInterval(()=>{
+    S.timerSec++;
+    const m=Math.floor(S.timerSec/60).toString().padStart(2,'0');
+    const s=(S.timerSec%60).toString().padStart(2,'0');
+    document.getElementById('aw-tmr').textContent=m+':'+s;
+    updateVol();
+  },1000);
+}
+function updateVol(){
+  let v=0;Object.values(S.exData).forEach(e=>e.sets.forEach(s=>{if(s.done)v+=s.kg*s.reps}));
+  document.getElementById('aw-vol').textContent=Math.round(v)+' kg';
+}
+function addEx(){addExByName(EX_DB[Math.floor(Math.random()*EX_DB.length)]);}
+function addExByName(name){
+  S.exCtr++;const id='e'+S.exCtr;
+  S.exData[id]={name,sets:[{kg:0,reps:0,rpe:0,done:false},{kg:0,reps:0,rpe:0,done:false},{kg:0,reps:0,rpe:0,done:false}]};
+  const cont=document.getElementById('aw-exes');
+  const wrap=document.createElement('div');wrap.className='exb';wrap.id=id+'_w';
+  // Get last session comparison
+  const lastW=S.workouts.find(w=>w.exDetails&&w.exDetails[name]);
+  const vsHtml=lastW?`<div class="vs-box"><div class="vs-row"><span style="font-size:10px;color:var(--txt3)">Lần trước:</span><span class="xs muted">${lastW.exDetails[name]}</span></div></div>`:'';
+  wrap.innerHTML=`
+    <div class="rb" style="margin-bottom:8px">
+      <div>
+        <div class="ex-name">${name}</div>
+        ${vsHtml}
+      </div>
+      <div class="row" style="gap:5px">
+        <button class="btn bg bsm" style="font-size:11px;padding:5px 9px" onclick="aiRec('${id}','${name}')">⚡AI</button>
+        <button class="btn bg bsm" style="font-size:11px;padding:5px 9px" onclick="aiSwap('${id}','${name}')">↔ Swap</button>
+      </div>
+    </div>
+    <div class="ex-hdr"><span>#</span><span>kg</span><span>reps</span><span>RPE</span><span></span></div>
+    <div id="${id}_sets">
+      ${[1,2,3].map(i=>`<div class="set-r"><span class="sn">${i}</span><input class="si" type="number" min="0" placeholder="0" oninput="sv('${id}',${i-1},'kg',this.value)"><input class="si" type="number" min="0" placeholder="0" oninput="sv('${id}',${i-1},'reps',this.value)"><input class="si" type="number" min="1" max="10" placeholder="7" oninput="sv('${id}',${i-1},'rpe',this.value)"><button class="sd" onclick="doneS('${id}',${i-1},this)">✓</button></div>`).join('')}
+    </div>
+    <button class="btn bg" style="font-size:11px;height:28px;margin-top:4px" onclick="addS('${id}')">+ Set</button>
+    <div id="${id}_ai" style="display:none;margin-top:8px" class="csm">
+      <div class="xs mono" style="color:var(--lime);margin-bottom:4px">AI Coach</div>
+      <div id="${id}_ai_t" class="xs muted" style="line-height:1.6"></div>
+    </div>`;
+  cont.appendChild(wrap);
+}
+function sv(id,i,f,v){if(S.exData[id]?.sets[i])S.exData[id].sets[i][f]=+v;}
+function doneS(id,i,btn){
+  if(!S.exData[id]?.sets[i])return;
+  S.exData[id].sets[i].done=!S.exData[id].sets[i].done;
+  btn.classList.toggle('on',S.exData[id].sets[i].done);
+  if(S.exData[id].sets[i].done){
+    updateVol();
+    const done=S.exData[id].sets.filter(s=>s.done&&s.kg>0);
+    if(done.length>=2){
+      const aiel=document.getElementById(id+'_ai');
+      const ait=document.getElementById(id+'_ai_t');
+      aiel.style.display='block';
+      ait.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';
+      const prompt=`Người dùng ${S.profile.level} ${S.profile.kg}kg. Vừa tập ${S.exData[id].name}: ${done.map(s=>`${s.kg}kg×${s.reps}reps RPE${s.rpe||7}`).join(', ')}. Gợi ý weight set tiếp theo (1-2 câu tiếng Việt, cụ thể số kg).`;
+      callAI(prompt,200).then(r=>{ait.textContent=r;document.getElementById('live-ai').textContent=r;});
+    }
+  }
+}
+function addS(id){
+  const idx=S.exData[id].sets.length;
+  S.exData[id].sets.push({kg:0,reps:0,rpe:0,done:false});
+  const r=document.createElement('div');r.className='set-r';
+  r.innerHTML=`<span class="sn">${idx+1}</span><input class="si" type="number" min="0" placeholder="0" oninput="sv('${id}',${idx},'kg',this.value)"><input class="si" type="number" min="0" placeholder="0" oninput="sv('${id}',${idx},'reps',this.value)"><input class="si" type="number" min="1" max="10" placeholder="7" oninput="sv('${id}',${idx},'rpe',this.value)"><button class="sd" onclick="doneS('${id}',${idx},this)">✓</button>`;
+  document.getElementById(id+'_sets').appendChild(r);
+}
+async function aiRec(id,name){
+  if(!S.isPro){showPW();return;}
+  const el=document.getElementById(id+'_ai'),t=document.getElementById(id+'_ai_t');
+  el.style.display='block';t.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';
+  const sets=S.exData[id].sets.filter(s=>s.kg>0);
+  const prompt=sets.length
+    ?`${S.profile.level} ${S.profile.kg}kg, mục tiêu ${S.profile.goal}. Tập ${name}: ${sets.map(s=>`${s.kg}kg×${s.reps}reps RPE${s.rpe||7}`).join(', ')}. Gợi ý set tiếp theo và 1 cue kỹ thuật. 2-3 câu tiếng Việt.`
+    :`Gợi ý bắt đầu bài ${name} cho ${S.profile.level} ${S.profile.kg}kg, mục tiêu ${S.profile.goal}. 2 câu tiếng Việt.`;
+  t.textContent=await callAI(prompt,250);
+}
+async function aiSwap(id,name){
+  const el=document.getElementById(id+'_ai'),t=document.getElementById(id+'_ai_t');
+  el.style.display='block';t.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';
+  const prompt=`Thiết bị cho ${name} đang bận. Thiết bị có sẵn: ${S.profile.equip}. Đề xuất 3 bài thay thế cùng nhóm cơ — mỗi bài 1 dòng, tiếng Việt.`;
+  t.innerHTML='<strong style="color:var(--lime)">Thay thế:</strong><br>'+(await callAI(prompt,300)).replace(/\n/g,'<br>');
+}
+function finW(){
+  clearInterval(S.timerInt);
+  const dur=Math.round(S.timerSec/60);
+  let vol=0;const exDetails={};
+  Object.values(S.exData).forEach(e=>{
+    const done=e.sets.filter(s=>s.done&&s.kg>0);
+    if(done.length){exDetails[e.name]=done.map(s=>`${s.kg}kg×${s.reps}`).join(', ');}
+    done.forEach(s=>vol+=s.kg*s.reps);
+  });
+  vol=Math.round(vol);S.stats.total++;S.stats.streak++;S.stats.volume+=vol;
+  S.workouts.unshift({date:new Date().toLocaleDateString('vi-VN'),title:S.activeW.title,dur,vol,exDetails});
+  document.getElementById('w-idle').style.display='block';
+  document.getElementById('w-active').style.display='none';
+  S.activeW=null;
+  renderWHist();renderHome();
+  toast(`Done! 💪 ${dur} phút · ${vol}kg volume`);
+}
+function renderWHist(){
+  const el=document.getElementById('w-hist');
+  if(!S.workouts.length){el.innerHTML='<div class="xs muted">Chưa có buổi tập nào.</div>';return;}
+  el.innerHTML=S.workouts.slice(0,6).map(w=>`<div class="csm rb" style="margin-bottom:6px"><div><div style="font-size:13px;font-weight:500">${w.title}</div><div class="xs muted">${w.date} · ${w.dur}ph · ${Object.keys(w.exDetails||{}).length} bài</div></div><span class="tag tl">${w.vol}kg</span></div>`).join('');
+}
+
+// ═══════ PLANS ═══════
+function filterPlan(f,btn){
+  document.querySelectorAll('#plan-pills .pill').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');renderPlans(f);
+}
+function renderPlans(f){
+  const ll={beginner:'B',intermediate:'I',advanced:'A'};
+  const lc={beginner:'tb',intermediate:'ta',advanced:'tr'};
+  const filtered=f==='all'?PLANS:f==='female'?PLANS.filter(p=>p.female):f==='home'?PLANS.filter(p=>p.eq==='home'):PLANS.filter(p=>p.lvl===f);
+  document.getElementById('plan-list').innerHTML=filtered.map(p=>`
+    <div class="plan-card" onclick="openPlanDetail(${p.id})">
+      <div class="plan-thumb" style="background:${p.color}"><div class="plan-thumb-text" style="color:${p.acc}">${p.name.split(' ')[0]}</div></div>
+      <div class="plan-body">
+        <div class="rb" style="margin-bottom:5px">
+          <div class="plan-name">${p.name}</div>
+          <div class="row" style="gap:4px">
+            <span class="tag ${lc[p.lvl]}">${ll[p.lvl]}</span>
+            ${p.female?'<span class="tag tp">♀</span>':''}
+          </div>
+        </div>
+        <div class="xs muted" style="margin-bottom:7px;line-height:1.5">${p.desc}</div>
+        <div class="row" style="gap:10px">
+          <span class="xs muted">${p.days}x/tuần</span>
+          <span class="xs muted">${p.exs.length} bài</span>
+          <span class="xs muted">${p.goal==='muscle'?'Hypertrophy':p.goal==='strength'?'Strength':p.goal==='fat'?'Fat loss':'General'}</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function selPlan(id){
+  S.currentPlan=PLANS.find(p=>p.id===id);
+  toast('Đã chọn: '+S.currentPlan.name);
+  goTab('s-home');
+}
+
+// ═══════ AI CHAT ═══════
+function sendChat(){
+  const inp=document.getElementById('chat-in');
+  const msg=inp.value.trim();if(!msg)return;inp.value='';
+  addBub(msg,'user');aiChat(msg);
+}
+function qq(msg){addBub(msg,'user');aiChat(msg);}
+function addBub(msg,role){
+  const cont=document.getElementById('chat-msgs');
+  const d=document.createElement('div');d.className='bub '+role;
+  if(role==='ai')d.innerHTML=`<div class="ai-lbl"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>AI COACH</div>${msg}`;
+  else d.textContent=msg;
+  cont.appendChild(d);d.scrollIntoView({behavior:'smooth',block:'end'});
+  return d;
+}
+async function aiChat(msg){
+  const loading=addBub('<span class="td"></span><span class="td"></span><span class="td"></span>','ai');
+  S.chatHist.push({role:'user',content:msg});
+  if(S.chatHist.length>12)S.chatHist=S.chatHist.slice(-12);
+  const sys=`Bạn là AI Coach gym chuyên nghiệp, hoàn toàn bằng tiếng Việt. Hồ sơ: ${S.profile.name||'lifter'}, ${S.profile.kg}kg, cao ${S.profile.cm}cm, ${S.profile.age} tuổi, ${S.profile.sex==='female'?'nữ':'nam'}, trình độ ${S.profile.level}, mục tiêu ${S.profile.goal}, ${S.profile.days}x/tuần, thiết bị: ${S.profile.equip}. Trả lời tiếng Việt, thực tế, có số liệu cụ thể, ngắn gọn và hữu ích.`;
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:700,system:sys,messages:S.chatHist})});
+    const d=await r.json();
+    const txt=d.content?.find(c=>c.type==='text')?.text||'Có lỗi xảy ra.';
+    S.chatHist.push({role:'assistant',content:txt});
+    loading.innerHTML=`<div class="ai-lbl"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>AI COACH</div>${txt.replace(/\n/g,'<br>')}`;
+  }catch(e){loading.innerHTML='<div class="ai-lbl">AI COACH</div>Lỗi kết nối. Thử lại nhé!';}
+  loading.scrollIntoView({behavior:'smooth',block:'end'});
+}
+
+// ═══════ PROGRESS + CHARTS ═══════
+function renderProgress(){
+  renderCharts();renderMeas();renderFormGuides();renderCalendar();renderAchievements();
+}
+const BENCH_DATA=[65,68,70,72.5,75,77.5];
+const SQUAT_DATA=[80,85,87.5,90,95,97.5];
+function renderCharts(){
+  drawChart('bench',BENCH_DATA,['T4','T5','T6','T7','T8','T9']);
+  drawChart('squat',SQUAT_DATA,['T4','T5','T6','T7','T8','T9']);
+}
+function drawChart(key,data,labels){
+  const w=320,h=90,pad=10;
+  const min=Math.min(...data)-5,max=Math.max(...data)+5;
+  const pts=data.map((v,i)=>({
+    x:pad+(i/(data.length-1))*(w-2*pad),
+    y:pad+(1-(v-min)/(max-min))*(h-2*pad)
+  }));
+  const line=pts.map((p,i)=>i===0?`M${p.x},${p.y}`:`L${p.x},${p.y}`).join(' ');
+  const area=line+` L${pts[pts.length-1].x},${h} L${pts[0].x},${h} Z`;
+  document.getElementById(key+'-line').setAttribute('d',line);
+  document.getElementById(key+'-area').setAttribute('d',area);
+  const ptEl=document.getElementById(key+'-pts');
+  ptEl.innerHTML=pts.map((p,i)=>`
+    <circle cx="${p.x}" cy="${p.y}" r="3.5" fill="${i===pts.length-1?'#c8f135':'#1e2e00'}" stroke="#c8f135" stroke-width="1.5"/>
+    ${i===pts.length-1?`<text x="${p.x}" y="${p.y-7}" text-anchor="middle" font-size="9" fill="#c8f135" font-family="JetBrains Mono,monospace">${data[i]}kg</text>`:''}
+  `).join('');
+  document.getElementById(key+'-labels').innerHTML=labels.map(l=>`<span>${l}</span>`).join('');
+}
+function renderMeas(){
+  const last=S.measurements[S.measurements.length-1];
+  if(!last)return;
+  const prev=S.measurements[S.measurements.length-2];
+  const fields=['weight','arm','chest','waist','thigh'];
+  const units=['kg','cm','cm','cm','cm'];
+  fields.forEach((f,i)=>{
+    const el=document.getElementById('m-'+f);
+    const ec=document.getElementById('m-'+f+'-c');
+    if(el&&last[f]){
+      el.textContent=last[f]+units[i];
+      if(prev&&prev[f]&&ec){
+        const diff=(last[f]-prev[f]).toFixed(1);
+        ec.textContent=(diff>0?'+':'')+diff+units[i];
+        ec.style.color=f==='waist'?(diff<0?'#c8f135':'#ff4545'):(diff>0?'#c8f135':'#ff4545');
+      }
+    }
+  });
+}
+function renderFormGuides(){
+  const el=document.getElementById('form-guide-list');
+  if(!el)return;
+  el.innerHTML=FORM_GUIDES.map(g=>`
+    <div class="fg-card">
+      <div class="fg-video" onclick="toast('Form guide video — tính năng Pro!')">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,#1a1a1a,#222);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px">
+          <div style="font-family:var(--FD);font-size:18px;color:var(--lime);letter-spacing:.06em">${g.name.toUpperCase()}</div>
+          <div class="fg-play"><svg width="16" height="16" viewBox="0 0 24 24" fill="#111"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+        </div>
+      </div>
+      <div class="fg-body">
+        <div class="fg-name">${g.name} — Key Cues</div>
+        <ul class="cue-list">${g.cues.map(c=>`<li class="cue-item">${c}</li>`).join('')}</ul>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════ MEASUREMENTS MODAL ═══════
+function openMeasForm(){document.getElementById('meas-modal').style.display='block';}
+function closeMeasForm(){document.getElementById('meas-modal').style.display='none';}
+function saveMeas(){
+  const m={
+    date:new Date().toLocaleDateString('vi-VN'),
+    weight:+document.getElementById('mm-weight').value||0,
+    arm:+document.getElementById('mm-arm').value||0,
+    chest:+document.getElementById('mm-chest').value||0,
+    waist:+document.getElementById('mm-waist').value||0,
+    hip:+document.getElementById('mm-hip').value||0,
+    thigh:+document.getElementById('mm-thigh').value||0,
+  };
+  S.measurements.push(m);renderMeas();closeMeasForm();
+  saveState();
+  showNotif('📏','Đã lưu số đo!','Tiến độ của bạn được cập nhật');
+  toast('Đã lưu số đo! 📏');
+}
+
+// ═══════ PROFILE ═══════
+function autoSaveProfile(){
+  S.profile.name=document.getElementById('p-name').value||'Lifter';
+  S.profile.kg=+document.getElementById('p-kg').value||70;
+  S.profile.cm=+document.getElementById('p-cm').value||170;
+  S.profile.age=+document.getElementById('p-age').value||25;
+  S.profile.days=+document.getElementById('p-days').value||4;
+  S.profile.goal=document.getElementById('p-goal').value;
+  S.profile.level=document.getElementById('p-level').value;
+  S.profile.equip=document.getElementById('p-equip').value;
+  const av=document.getElementById('p-avatar');
+  if(av)av.textContent=S.profile.name[0]?.toUpperCase()||'?';
+  document.getElementById('p-name-disp').textContent=S.profile.name;
+  document.getElementById('p-meta').textContent=`${S.profile.kg}kg · ${S.profile.level} · ${S.profile.goal}`;
+}
+function syncProfileForm(){
+  document.getElementById('p-name').value=S.profile.name;
+  document.getElementById('p-kg').value=S.profile.kg||'';
+  document.getElementById('p-cm').value=S.profile.cm||'';
+  document.getElementById('p-age').value=S.profile.age||'';
+  document.getElementById('p-days').value=S.profile.days;
+  document.getElementById('p-goal').value=S.profile.goal;
+  document.getElementById('p-level').value=S.profile.level;
+  document.getElementById('p-equip').value=S.profile.equip;
+  const av=document.getElementById('p-avatar');
+  if(av)av.textContent=S.profile.name[0]?.toUpperCase()||'?';
+  document.getElementById('p-name-disp').textContent=S.profile.name||'Lifter';
+  document.getElementById('p-meta').textContent=`${S.profile.kg}kg · ${S.profile.level}`;
+  if(S.isPro){
+    document.getElementById('p-pro-badge').style.display='block';
+    document.getElementById('p-upgrade').style.display='none';
+  }
+}
+
+// ═══════ PAYWALL ═══════
+let selPlanId='yr';
+function showPW(){document.getElementById('pw').classList.add('on');}
+function closePW(){document.getElementById('pw').classList.remove('on');}
+function selPlan(t){
+  selPlanId=t;
+  document.getElementById('pw-yr').classList.toggle('on',t==='yr');
+  document.getElementById('pw-yr').querySelector('.ck').textContent=t==='yr'?'✓':'';
+  document.getElementById('pw-mo').classList.toggle('on',t==='mo');
+  document.getElementById('pw-mo').querySelector('.ck').textContent=t==='mo'?'✓':'';
+  document.getElementById('pw-note').textContent=t==='yr'?'Sau đó 1.499.000₫/năm · Hủy bất cứ lúc':'Sau đó 249.000₫/tháng · Hủy bất cứ lúc';
+}
+function doSubscribe(){
+  // Production: stripe.redirectToCheckout({priceId: selPlanId==='yr'?'price_annual':'price_monthly'})
+  toast('Đang chuyển đến Stripe...');
+  setTimeout(()=>{
+    S.isPro=true;closePW();
+    document.getElementById('upgrade-btn').style.display='none';
+    document.getElementById('p-pro-badge').style.display='block';
+    document.getElementById('p-upgrade').style.display='none';
+    saveState();
+    showNotif('🎉','FitAI Pro đã kích hoạt!','Tất cả tính năng AI đã được mở khóa');
+    setTimeout(()=>toast('✅ Đã kích hoạt Pro! 🎉'),500);
+  },1500);
+}
+
+// ═══════ AI UTIL ═══════
+async function callAI(prompt,maxTok=400){
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTok,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    return d.content?.find(c=>c.type==='text')?.text||'Có lỗi xảy ra.';
+  }catch{return'Lỗi kết nối AI.';}
+}
+
+// ═══════ TOAST ═══════
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2800);
+}
+
+// ═══════ REST TIMER ═══════
+let RT={active:false,total:120,remaining:120,interval:null};
+function startRest(sec=120){
+  RT.total=sec;RT.remaining=sec;RT.active=true;
+  document.getElementById('rest-timer').classList.add('on');
+  clearInterval(RT.interval);
+  RT.interval=setInterval(tickRest,1000);
+  tickRest();
+}
+function tickRest(){
+  if(RT.remaining<=0){skipRest();return;}
+  const m=Math.floor(RT.remaining/60),s=(RT.remaining%60).toString().padStart(2,'0');
+  document.getElementById('rt-num').textContent=m+':'+s;
+  document.getElementById('rt-status').textContent=RT.remaining<=10?'Sắp xong rồi! 💪':'Đang nghỉ...';
+  const pct=RT.remaining/RT.total;
+  const circ=2*Math.PI*22;
+  document.getElementById('rt-arc').style.strokeDashoffset=(1-pct)*circ;
+  if(RT.remaining<=10)document.getElementById('rt-arc').style.stroke='#ff4545';
+  else document.getElementById('rt-arc').style.stroke='#c8f135';
+  RT.remaining--;
+}
+function addRestTime(s){RT.remaining+=s;}
+function skipRest(){
+  clearInterval(RT.interval);RT.active=false;
+  document.getElementById('rest-timer').classList.remove('on');
+  document.getElementById('rt-arc').style.strokeDashoffset='0';
+  document.getElementById('rt-arc').style.stroke='#c8f135';
+}
+
+// Auto-trigger rest after set done
+function doneS(id,i,btn){
+  if(!S.exData[id]?.sets[i])return;
+  S.exData[id].sets[i].done=!S.exData[id].sets[i].done;
+  btn.classList.toggle('on',S.exData[id].sets[i].done);
+  if(S.exData[id].sets[i].done){
+    updateVol();
+    // Auto start rest timer
+    startRest(120);
+    const done=S.exData[id].sets.filter(s=>s.done&&s.kg>0);
+    if(done.length>=2){
+      const aiel=document.getElementById(id+'_ai');
+      const ait=document.getElementById(id+'_ai_t');
+      if(aiel&&ait){
+        aiel.style.display='block';
+        ait.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';
+        const prompt=`Người dùng ${S.profile.level} ${S.profile.kg}kg. Vừa tập ${S.exData[id].name}: ${done.map(s=>`${s.kg}kg×${s.reps}reps RPE${s.rpe||7}`).join(', ')}. Gợi ý weight set tiếp theo (1-2 câu tiếng Việt, cụ thể số kg).`;
+        callAI(prompt,200).then(r=>{ait.textContent=r;document.getElementById('live-ai').textContent=r;});
+      }
+    }
+  }
+}
+
+// ═══════ WORKOUT SUMMARY ═══════
+function showWS(dur,vol,exCount,exDetails){
+  const modal=document.getElementById('ws-modal');
+  modal.classList.add('on');
+  // Emoji based on volume
+  const emoji=vol>5000?'🔥':vol>2000?'💪':vol>500?'😤':'👊';
+  document.getElementById('ws-emoji').textContent=emoji;
+  document.getElementById('ws-title').textContent=dur>60?'BEAST MODE!':dur>30?'XONG RỒI!':'DONE!';
+  document.getElementById('ws-sub').textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long'});
+  // Stats
+  document.getElementById('ws-stats').innerHTML=`
+    <div class="ws-stat"><div class="ws-val">${dur}</div><div class="ws-lbl">Phút</div></div>
+    <div class="ws-stat"><div class="ws-val">${vol>999?(vol/1000).toFixed(1)+'k':vol}</div><div class="ws-lbl">kg volume</div></div>
+    <div class="ws-stat"><div class="ws-val">${exCount}</div><div class="ws-lbl">Bài tập</div></div>
+    <div class="ws-stat"><div class="ws-val">${S.stats.streak}</div><div class="ws-lbl">Day streak</div></div>`;
+  // PRs
+  const prs=[];
+  if(S.stats.total===1)prs.push({icon:'🎉',text:'Buổi tập đầu tiên! Khởi đầu tuyệt vời!'});
+  if(S.stats.streak===7)prs.push({icon:'🔥',text:'7 ngày streak! Bạn đang làm rất tốt!'});
+  if(vol>3000)prs.push({icon:'🏆',text:`Volume cao nhất: ${vol}kg!`});
+  document.getElementById('ws-prs').innerHTML=prs.map(p=>`<div class="ws-pr-item"><span class="pr-icon">${p.icon}</span><span class="pr-text">${p.text}</span></div>`).join('');
+  // AI insight
+  const aiTxt=document.getElementById('ws-ai-txt');
+  aiTxt.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';
+  const prompt=`Người dùng vừa hoàn thành buổi tập: ${dur} phút, ${vol}kg volume, ${exCount} bài. Trình độ ${S.profile.level}, mục tiêu ${S.profile.goal}. Cho 1 nhận xét ngắn gọn (2 câu tiếng Việt) về buổi tập và 1 lời khuyên cho buổi tiếp theo.`;
+  callAI(prompt,200).then(r=>{aiTxt.textContent=r;});
+  // Check achievements
+  checkAchievements();
+}
+function closeWS(){document.getElementById('ws-modal').classList.remove('on');}
+function selectFeel(el,feel){
+  document.querySelectorAll('.feel-opt').forEach(f=>f.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function shareWorkout(){
+  const txt=`Vừa hoàn thành buổi tập với FitAI! 💪\n${S.stats.total} buổi · ${S.stats.streak} day streak\n\nfitai.app`;
+  if(navigator.share){navigator.share({text:txt});}
+  else{navigator.clipboard?.writeText(txt);toast('Đã copy kết quả!');}
+}
+
+// ═══════ ACHIEVEMENTS ═══════
+const ACHIEVEMENTS=[
+  {id:'first',icon:'🌱',name:'Khởi đầu',desc:'Buổi tập đầu tiên',check:s=>s.total>=1},
+  {id:'week',icon:'📅',name:'Tuần đầu',desc:'7 day streak',check:s=>s.streak>=7},
+  {id:'month',icon:'🔥',name:'Tháng đầu',desc:'30 day streak',check:s=>s.streak>=30},
+  {id:'ten',icon:'💪',name:'10 buổi',desc:'Hoàn thành 10 buổi',check:s=>s.total>=10},
+  {id:'fifty',icon:'🏆',name:'50 buổi',desc:'Hoàn thành 50 buổi',check:s=>s.total>=50},
+  {id:'ton',icon:'⚡',name:'Tấn đầu',desc:'1000kg tổng volume',check:s=>s.volume>=1000},
+  {id:'5ton',icon:'🦁',name:'5 tấn',desc:'5000kg tổng volume',check:s=>s.volume>=5000},
+  {id:'ai',icon:'🤖',name:'AI User',desc:'Hỏi AI Coach lần đầu',check:s=>S.chatHist.length>0},
+  {id:'plan',icon:'📋',name:'Có plan',desc:'Chọn plan đầu tiên',check:s=>!!S.currentPlan},
+];
+function checkAchievements(){
+  const unlocked=ACHIEVEMENTS.filter(a=>a.check(S.stats)).map(a=>a.id);
+  S.achievements=unlocked;
+  renderAchievements();
+}
+function renderAchievements(){
+  const el=document.getElementById('ach-grid');if(!el)return;
+  const unlocked=S.achievements||[];
+  el.innerHTML=ACHIEVEMENTS.map(a=>{
+    const on=unlocked.includes(a.id);
+    return`<div class="ach-card ${on?'unlocked':'locked'}">
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-name">${a.name}</div>
+      <div class="ach-desc">${on?a.desc:'???'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════ MONTHLY CALENDAR ═══════
+function renderCalendar(){
+  const el=document.getElementById('cal-grid');if(!el)return;
+  const now=new Date();
+  const year=now.getFullYear(),month=now.getMonth();
+  document.getElementById('cal-month-lbl').textContent=`Tháng ${month+1}, ${year}`;
+  const first=new Date(year,month,1);
+  const days=new Date(year,month+1,0).getDate();
+  let startDay=first.getDay();if(startDay===0)startDay=7;
+  let html='';
+  for(let i=1;i<startDay;i++)html+=`<div></div>`;
+  for(let d=1;d<=days;d++){
+    const isToday=d===now.getDate();
+    const hasW=S.workouts.some(w=>w.date===new Date(year,month,d).toLocaleDateString('vi-VN'));
+    const cls=isToday?'today':hasW?'workout':'rest';
+    html+=`<div class="cal-day ${cls}">${d}${hasW?'<div class="cal-day-dot"></div>':''}</div>`;
+  }
+  el.innerHTML=html;
+}
+
+// ═══════ NUTRITION ═══════
+const NUT_FOODS={
+  b:[],l:[],d:[],s:[]
+};
+const COMMON_FOODS=[
+  {name:'Cơm trắng 200g',cal:260,p:5,c:57,f:0.4},
+  {name:'Ức gà 150g',cal:165,p:31,c:0,f:3.6},
+  {name:'Trứng luộc (2 quả)',cal:156,p:12,c:1.2,f:10.6},
+  {name:'Phở bò 1 tô',cal:420,p:25,c:55,f:10},
+  {name:'Bún bò 1 tô',cal:380,p:22,c:48,f:12},
+  {name:'Bánh mì trứng',cal:320,p:14,c:38,f:12},
+  {name:'Sữa chua 1 hũ',cal:100,p:6,c:14,f:2.5},
+  {name:'Chuối 1 quả',cal:89,p:1.1,c:23,f:0.3},
+  {name:'Whey protein 1 scoop',cal:120,p:24,c:3,f:2},
+];
+function addFood(meal){
+  const name=prompt('Tên món ăn (hoặc chọn):');
+  if(!name)return;
+  const found=COMMON_FOODS.find(f=>f.name.toLowerCase().includes(name.toLowerCase()));
+  const food=found||{name,cal:200,p:10,c:20,f:8};
+  NUT_FOODS[meal].push(food);
+  renderNutrition();
+}
+function renderNutrition(){
+  const meals={b:'nut-b',l:'nut-l',d:'nut-d',s:'nut-s'};
+  let totalCal=0,totalP=0,totalC=0,totalF=0;
+  Object.entries(NUT_FOODS).forEach(([meal,foods])=>{
+    const cal=foods.reduce((t,f)=>t+f.cal,0);
+    totalCal+=cal;totalP+=foods.reduce((t,f)=>t+f.p,0);
+    totalC+=foods.reduce((t,f)=>t+f.c,0);totalF+=foods.reduce((t,f)=>t+f.f,0);
+    const calEl=document.getElementById(meals[meal]+'-cal');
+    const foodsEl=document.getElementById(meals[meal]+'-foods');
+    if(calEl)calEl.textContent=cal+' kcal';
+    if(foodsEl)foodsEl.innerHTML=foods.length?foods.map(f=>`
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--brd);font-size:12px">
+        <span style="color:var(--txt2)">${f.name}</span>
+        <span style="font-family:var(--FM);font-size:11px;color:var(--txt3)">${f.cal}kcal · ${f.p}g P</span>
+      </div>`).join(''):'<div class="xs muted">Chưa có món</div>';
+  });
+  const goal=S.profile.goal==='fat'?1800:S.profile.goal==='muscle'?2600:2200;
+  const pct=Math.min(Math.round(totalCal/goal*100),100);
+  const calTag=document.getElementById('nut-cal-tag');
+  const calBar=document.getElementById('nut-cal-bar');
+  const nutP=document.getElementById('nut-p');
+  const nutC=document.getElementById('nut-c');
+  const nutF=document.getElementById('nut-f');
+  if(calTag)calTag.textContent=`${totalCal} / ${goal} kcal`;
+  if(calBar)calBar.style.width=pct+'%';
+  if(nutP)nutP.textContent=Math.round(totalP)+'g';
+  if(nutC)nutC.textContent=Math.round(totalC)+'g';
+  if(nutF)nutF.textContent=Math.round(totalF)+'g';
+}
+async function genMealPlan(){
+  const out=document.getElementById('nut-ai-output');
+  const txt=document.getElementById('nut-ai-txt');
+  if(out)out.style.display='block';
+  if(txt)txt.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';
+  const goal=S.profile.goal==='fat'?'giảm mỡ':S.profile.goal==='muscle'?'tăng cơ':'sức khỏe';
+  const prompt=`Người ${S.profile.sex==='female'?'nữ':'nam'} ${S.profile.kg}kg, mục tiêu ${goal}, tập ${S.profile.days}x/tuần. Tạo meal plan 1 ngày với đồ ăn Việt Nam phổ biến. Format: từng bữa sáng/trưa/tối với tên món, calo và protein. Tổng calo và protein ở cuối. Tiếng Việt, ngắn gọn.`;
+  const r=await callAI(prompt,500);
+  if(txt)txt.innerHTML=r.replace(/\n/g,'<br>');
+}
+
+// ═══════ UPDATED finW with summary ═══════
+function finW(){
+  skipRest();
+  clearInterval(S.timerInt);
+  const dur=Math.round(S.timerSec/60);
+  let vol=0;const exDetails={};
+  Object.values(S.exData).forEach(e=>{
+    const done=e.sets.filter(s=>s.done&&s.kg>0);
+    if(done.length){exDetails[e.name]=done.map(s=>`${s.kg}kg×${s.reps}`).join(', ');}
+    done.forEach(s=>vol+=s.kg*s.reps);
+  });
+  vol=Math.round(vol);S.stats.total++;S.stats.streak++;S.stats.volume+=vol;
+  const exCount=Object.keys(S.exData).length;
+  S.workouts.unshift({date:new Date().toLocaleDateString('vi-VN'),title:S.activeW.title,dur,vol,exDetails});
+  document.getElementById('w-idle').style.display='block';
+  document.getElementById('w-active').style.display='none';
+  S.activeW=null;
+  renderWHist();updateHome();renderCalendar();
+  saveState();
+  // Show summary instead of toast
+  showWS(dur,vol,exCount,exDetails);
+}
+
+// ═══════ DATA PERSISTENCE (localStorage) ═══════
+function saveState(){
+  try{
+    localStorage.setItem('fitai_state',JSON.stringify({
+      profile:S.profile,workouts:S.workouts.slice(0,50),
+      stats:S.stats,achievements:S.achievements||[],
+      currentPlanId:S.currentPlan?.id,measurements:S.measurements,
+      weekDone:S.weekDone,NUT_FOODS,isPro:S.isPro
+    }));
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem('fitai_state');
+    if(!raw)return;
+    const d=JSON.parse(raw);
+    if(d.profile)Object.assign(S.profile,d.profile);
+    if(d.workouts)S.workouts=d.workouts;
+    if(d.stats)Object.assign(S.stats,d.stats);
+    if(d.achievements)S.achievements=d.achievements;
+    if(d.currentPlanId)S.currentPlan=PLANS.find(p=>p.id===d.currentPlanId)||null;
+    if(d.measurements)S.measurements=d.measurements;
+    if(d.weekDone)S.weekDone=d.weekDone;
+    if(d.isPro)S.isPro=d.isPro;
+    if(d.NUT_FOODS)Object.assign(NUT_FOODS,d.NUT_FOODS);
+    // Sync profile form
+    if(S.profile.name){
+      const pn=document.getElementById('p-name');if(pn)pn.value=S.profile.name;
+      const pk=document.getElementById('p-kg');if(pk)pk.value=S.profile.kg||'';
+      const pc=document.getElementById('p-cm');if(pc)pc.value=S.profile.cm||'';
+      const pa=document.getElementById('p-age');if(pa)pa.value=S.profile.age||'';
+      const pg=document.getElementById('p-goal');if(pg)pg.value=S.profile.goal;
+      const pl=document.getElementById('p-level');if(pl)pl.value=S.profile.level;
+      const pe=document.getElementById('p-equip');if(pe)pe.value=S.profile.equip;
+    }
+  }catch(e){}
+}
+// Auto-save on state changes
+const _origFinOB=window.finOB;
+function autoSave(){saveState();}
+// Save after every workout finish, profile change, measurement
+setInterval(saveState,30000); // also auto-save every 30s
+
+// ═══════ PLAN DETAIL ═══════
+let currentDetailPlan=null;
+let currentDetailWeek=0;
+const PLAN_WEEKS={
+  1:[
+    {day:'Thứ 2',type:'Upper Body',exs:[{name:'Bench Press',sets:'4×8-10',rpe:8},{name:'DB Row',sets:'4×10-12',rpe:8},{name:'Shoulder Press',sets:'3×10-12',rpe:7},{name:'Bicep Curl',sets:'3×12-15',rpe:8}]},
+    {day:'Thứ 3',type:'REST',exs:[]},
+    {day:'Thứ 4',type:'Lower Body',exs:[{name:'Squat',sets:'4×8-10',rpe:8},{name:'Romanian DL',sets:'3×10-12',rpe:8},{name:'Leg Press',sets:'3×12-15',rpe:7},{name:'Calf Raise',sets:'4×15-20',rpe:8}]},
+    {day:'Thứ 5',type:'REST',exs:[]},
+    {day:'Thứ 6',type:'Upper Body',exs:[{name:'Incline DB Press',sets:'4×10-12',rpe:8},{name:'Pull-up',sets:'4×6-10',rpe:8},{name:'Lateral Raise',sets:'4×15-20',rpe:7},{name:'Tricep Pushdown',sets:'3×12-15',rpe:8}]},
+    {day:'Thứ 7',type:'REST',exs:[]},
+    {day:'Chủ Nhật',type:'REST',exs:[]},
+  ],
+  2:[
+    {day:'Thứ 2',type:'Push',exs:[{name:'Bench Press',sets:'4×6-8',rpe:8},{name:'Incline DB Press',sets:'3×10-12',rpe:8},{name:'Lateral Raise',sets:'4×15-20',rpe:7},{name:'Tricep Dip',sets:'3×12-15',rpe:8}]},
+    {day:'Thứ 3',type:'Pull',exs:[{name:'Deadlift',sets:'4×5-6',rpe:8},{name:'Pull-up',sets:'4×6-10',rpe:8},{name:'Face Pull',sets:'4×15-20',rpe:7},{name:'Hammer Curl',sets:'3×12-15',rpe:8}]},
+    {day:'Thứ 4',type:'Legs',exs:[{name:'Squat',sets:'4×8-10',rpe:8},{name:'Hip Thrust',sets:'4×10-12',rpe:8},{name:'Leg Curl',sets:'3×12-15',rpe:7},{name:'Calf Raise',sets:'4×20',rpe:8}]},
+    {day:'Thứ 5',type:'REST',exs:[]},
+    {day:'Thứ 6',type:'Push',exs:[{name:'Overhead Press',sets:'4×8-10',rpe:8},{name:'Cable Fly',sets:'3×12-15',rpe:8},{name:'Lateral Raise',sets:'4×15-20',rpe:7}]},
+    {day:'Thứ 7',type:'Pull',exs:[{name:'Barbell Row',sets:'4×8-10',rpe:8},{name:'Lat Pulldown',sets:'3×12-15',rpe:8},{name:'Seated Cable Row',sets:'3×12-15',rpe:7}]},
+    {day:'Chủ Nhật',type:'REST',exs:[]},
+  ],
+};
+function openPlanDetail(id){
+  const p=PLANS.find(x=>x.id===id);if(!p)return;
+  currentDetailPlan=p;currentDetailWeek=0;
+  // Hero
+  const hero=document.getElementById('pd-hero');
+  hero.style.background=`linear-gradient(135deg,${p.color},${p.color}dd)`;
+  document.getElementById('pd-hero-text').textContent=p.name.split(' ')[0].toUpperCase();
+  document.getElementById('pd-hero-text').style.color=p.acc;
+  // Tags
+  const lvlMap={beginner:'Beginner 🌱',intermediate:'Intermediate 🔶',advanced:'Advanced 🏆'};
+  document.getElementById('pd-tags').innerHTML=`
+    <span style="background:rgba(0,0,0,.5);color:${p.acc};font-size:10px;padding:3px 9px;border-radius:20px;font-family:var(--FM)">${lvlMap[p.lvl]}</span>
+    ${p.female?'<span style="background:rgba(0,0,0,.5);color:var(--pink);font-size:10px;padding:3px 9px;border-radius:20px;font-family:var(--FM)">♀ Cho nữ</span>':''}`;
+  document.getElementById('pd-name').textContent=p.name;
+  // Meta
+  document.getElementById('pd-meta').innerHTML=`
+    <span class="tag tl">${p.days}x/tuần</span>
+    <span class="tag tb">${p.exs.length} bài/buổi</span>
+    <span class="tag ta">${p.goal==='muscle'?'Hypertrophy':p.goal==='strength'?'Strength':'General'}</span>`;
+  // Stats
+  document.getElementById('pd-stats').innerHTML=`
+    <div class="pd-stat"><div class="pd-stat-val">10</div><div class="pd-stat-lbl">Tuần</div></div>
+    <div class="pd-stat"><div class="pd-stat-val">${p.days}</div><div class="pd-stat-lbl">Buổi/tuần</div></div>
+    <div class="pd-stat"><div class="pd-stat-val">~60</div><div class="pd-stat-lbl">Phút/buổi</div></div>`;
+  // Desc
+  document.getElementById('pd-desc').textContent=p.desc+' Plan được thiết kế theo nguyên tắc progressive overload — AI sẽ tự động điều chỉnh weight và volume mỗi tuần dựa trên performance của bạn.';
+  // Equipment
+  const equipMap={'full':'Full gym 🏟️','barbell':'Barbell + Rack 🪝','dumbbell':'Dumbbell 🎯','home':'Bodyweight 🏠'};
+  document.getElementById('pd-equip-list').innerHTML=`<span class="tag tb" style="font-size:12px;padding:5px 12px">${equipMap[p.eq]||p.eq}</span>`;
+  // Week tabs
+  const weeks=Array.from({length:4},(_,i)=>`Tuần ${i+1}`);
+  document.getElementById('pd-week-tabs').innerHTML=weeks.map((w,i)=>`<button class="pd-week-tab ${i===0?'on':''}" onclick="selectPlanWeek(${i},this)">${w}</button>`).join('');
+  renderPlanWeek(0);
+  // Show
+  const modal=document.getElementById('plan-detail');
+  modal.style.display='flex';
+  setTimeout(()=>modal.classList.add('show'),10);
+}
+function selectPlanWeek(idx,btn){
+  currentDetailWeek=idx;
+  document.querySelectorAll('.pd-week-tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');renderPlanWeek(idx);
+}
+function renderPlanWeek(idx){
+  const weekKey=idx%2===0?1:2;
+  const days=PLAN_WEEKS[weekKey]||PLAN_WEEKS[1];
+  document.getElementById('pd-week-content').innerHTML=days.map(d=>`
+    <div class="pd-day">
+      <div class="pd-day-header">
+        <div class="pd-day-name">${d.day}</div>
+        <div class="pd-day-type" style="color:${d.type==='REST'?'var(--txt3)':'var(--lime)'}">${d.type}</div>
+      </div>
+      ${d.exs.length?d.exs.map(e=>`
+        <div class="pd-ex-item">
+          <div class="pd-ex-name">${e.name}</div>
+          <div class="pd-ex-sets">${e.sets} · RPE ${e.rpe}</div>
+        </div>`).join(''):'<div class="xs muted">Nghỉ ngơi, phục hồi cơ thể</div>'}
+    </div>`).join('');
+}
+function closePlanDetail(){
+  const modal=document.getElementById('plan-detail');
+  modal.classList.remove('show');
+  setTimeout(()=>modal.style.display='none',300);
+}
+function joinPlan(){
+  if(!currentDetailPlan)return;
+  S.currentPlan=currentDetailPlan;
+  saveState();
+  closePlanDetail();
+  updateHome();
+  showNotif('🎉','Plan đã được chọn!',`${currentDetailPlan.name} — Bắt đầu ngay hôm nay`);
+}
+
+// ═══════ EXERCISE SEARCH ═══════
+const EX_FULL=[
+  {name:'Barbell Bench Press',nameVi:'Bench Press Barbell',muscle:'chest',equip:'barbell',emoji:'🏋️'},
+  {name:'Incline DB Press',nameVi:'Incline DB Press',muscle:'chest',equip:'dumbbell',emoji:'💪'},
+  {name:'Cable Fly',nameVi:'Cable Fly',muscle:'chest',equip:'cable',emoji:'🎯'},
+  {name:'Push Up',nameVi:'Hít đất',muscle:'chest',equip:'bodyweight',emoji:'🤸'},
+  {name:'Barbell Deadlift',nameVi:'Deadlift',muscle:'back',equip:'barbell',emoji:'🏋️'},
+  {name:'Pull-up',nameVi:'Xà đơn',muscle:'back',equip:'bodyweight',emoji:'🔝'},
+  {name:'Lat Pulldown',nameVi:'Lat Pulldown',muscle:'back',equip:'machine',emoji:'⬇️'},
+  {name:'Seated Cable Row',nameVi:'Cable Row',muscle:'back',equip:'cable',emoji:'🚣'},
+  {name:'Barbell Row',nameVi:'Barbell Row',muscle:'back',equip:'barbell',emoji:'🏋️'},
+  {name:'DB Shoulder Press',nameVi:'Shoulder Press',muscle:'shoulders',equip:'dumbbell',emoji:'🏆'},
+  {name:'Lateral Raise',nameVi:'Lateral Raise',muscle:'shoulders',equip:'dumbbell',emoji:'🦅'},
+  {name:'Face Pull',nameVi:'Face Pull',muscle:'shoulders',equip:'cable',emoji:'🎯'},
+  {name:'Overhead Press',nameVi:'Overhead Press',muscle:'shoulders',equip:'barbell',emoji:'🏋️'},
+  {name:'Barbell Curl',nameVi:'Barbell Curl',muscle:'upper arms',equip:'barbell',emoji:'💪'},
+  {name:'Hammer Curl',nameVi:'Hammer Curl',muscle:'upper arms',equip:'dumbbell',emoji:'🔨'},
+  {name:'Tricep Pushdown',nameVi:'Tricep Pushdown',muscle:'upper arms',equip:'cable',emoji:'⬇️'},
+  {name:'Tricep Dip',nameVi:'Tricep Dip',muscle:'upper arms',equip:'bodyweight',emoji:'⬇️'},
+  {name:'Barbell Squat',nameVi:'Barbell Squat',muscle:'upper legs',equip:'barbell',emoji:'🏋️'},
+  {name:'Leg Press',nameVi:'Leg Press',muscle:'upper legs',equip:'machine',emoji:'🦵'},
+  {name:'Romanian Deadlift',nameVi:'Romanian DL',muscle:'upper legs',equip:'barbell',emoji:'🔽'},
+  {name:'Leg Curl',nameVi:'Leg Curl',muscle:'upper legs',equip:'machine',emoji:'🦵'},
+  {name:'Bulgarian Split Squat',nameVi:'Bulgarian Split Squat',muscle:'upper legs',equip:'dumbbell',emoji:'🏃'},
+  {name:'Hip Thrust',nameVi:'Hip Thrust',muscle:'glutes',equip:'barbell',emoji:'🍑'},
+  {name:'Glute Bridge',nameVi:'Glute Bridge',muscle:'glutes',equip:'bodyweight',emoji:'🌉'},
+  {name:'Plank',nameVi:'Plank',muscle:'core',equip:'bodyweight',emoji:'🧱'},
+  {name:'Cable Crunch',nameVi:'Cable Crunch',muscle:'core',equip:'cable',emoji:'⚡'},
+  {name:'Leg Raise',nameVi:'Nâng chân',muscle:'core',equip:'bodyweight',emoji:'🦵'},
+  {name:'Calf Raise',nameVi:'Calf Raise',muscle:'lower legs',equip:'machine',emoji:'🦵'},
+];
+let exSearchMuscle='all';
+function openExSearch(){
+  document.getElementById('ex-search-modal').classList.add('on');
+  document.getElementById('ex-search-inp').value='';
+  exSearchMuscle='all';
+  document.querySelectorAll('#ex-search-muscles .pill').forEach((p,i)=>{p.classList.toggle('on',i===0);});
+  renderExSearchList('');
+  setTimeout(()=>document.getElementById('ex-search-inp').focus(),100);
+}
+function closeExSearch(){document.getElementById('ex-search-modal').classList.remove('on');}
+function filterExSearch(q){renderExSearchList(q);}
+function filterExMuscle(m,btn){
+  exSearchMuscle=m;
+  document.querySelectorAll('#ex-search-muscles .pill').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  renderExSearchList(document.getElementById('ex-search-inp').value);
+}
+function renderExSearchList(q){
+  const list=document.getElementById('ex-search-list');
+  const muscleViMap={chest:'Ngực',back:'Lưng',shoulders:'Vai','upper arms':'Bắp tay','upper legs':'Đùi',glutes:'Mông',core:'Core','lower legs':'Bắp chân',bodyweight:'Tự trọng'};
+  let items=EX_FULL.filter(e=>{
+    const mOk=exSearchMuscle==='all'||e.muscle===exSearchMuscle;
+    const sOk=!q||e.nameVi.toLowerCase().includes(q.toLowerCase())||e.name.toLowerCase().includes(q.toLowerCase());
+    return mOk&&sOk;
+  });
+  // Group by muscle
+  const grouped={};
+  items.forEach(e=>{if(!grouped[e.muscle])grouped[e.muscle]=[];grouped[e.muscle].push(e);});
+  let html='';
+  Object.entries(grouped).forEach(([muscle,exs])=>{
+    html+=`<div class="ex-category-header">${muscleViMap[muscle]||muscle}</div>`;
+    html+=exs.map(e=>`
+      <div class="ex-search-item" onclick="addExFromSearch('${e.name}');closeExSearch()">
+        <div class="ex-search-icon" style="background:var(--bg3)">${e.emoji}</div>
+        <div>
+          <div class="ex-search-name">${e.nameVi}</div>
+          <div class="ex-search-muscle">${muscleViMap[e.muscle]||e.muscle} · ${e.equip}</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>`).join('');
+  });
+  list.innerHTML=html||(q?'<div class="xs muted" style="padding:20px">Không tìm thấy bài tập</div>':'');
+}
+function addExFromSearch(name){addExByName(name);}
+
+// ═══════ NOTIFICATION ═══════
+let notifTimeout=null;
+function showNotif(icon,title,desc,dur=3500){
+  document.getElementById('notif-icon').textContent=icon;
+  document.getElementById('notif-title').textContent=title;
+  document.getElementById('notif-desc').textContent=desc;
+  document.getElementById('notif-bar').classList.add('on');
+  clearTimeout(notifTimeout);
+  notifTimeout=setTimeout(hideNotif,dur);
+}
+function hideNotif(){document.getElementById('notif-bar').classList.remove('on');}
+
+// ═══════ BMI + TDEE CALC ═══════
+function calcBMI(){
+  const kg=S.profile.kg||70,cm=S.profile.cm||170;
+  const bmi=kg/((cm/100)**2);
+  return{bmi:bmi.toFixed(1),cat:bmi<18.5?'Thiếu cân':bmi<25?'Bình thường':bmi<30?'Thừa cân':'Béo phì'};
+}
+function calcTDEE(){
+  const{kg,cm,age,sex,days}=S.profile;
+  const bmr=sex==='female'
+    ?447.593+(9.247*(kg||70))+(3.098*(cm||170))-(4.330*(age||25))
+    :88.362+(13.397*(kg||70))+(4.799*(cm||170))-(5.677*(age||25));
+  const multipliers=[1.2,1.375,1.375,1.55,1.55,1.725,1.725,1.9];
+  const tdee=bmr*(multipliers[days||4]||1.55);
+  return Math.round(tdee);
+}
+
+// ═══════ ENHANCED INIT ═══════
+function initApp(){
+  loadState(); // Load saved data first
+  renderHome();
+  renderPlans('all');
+  renderFormGuides();
+  renderCharts();
+  renderWeekCal();
+  renderCalendar();
+  renderAchievements();
+  renderNutrition();
+  S.achievements=S.achievements||[];
+  // Show welcome notification if new user
+  if(!S.profile.name){
+    setTimeout(()=>showNotif('👋','Chào mừng đến FitAI!','Hoàn thành hồ sơ để AI cá nhân hóa cho bạn'),1500);
+  } else {
+    setTimeout(()=>showNotif('💪',`Chào ${S.profile.name}!`,`Streak: ${S.stats.streak} ngày · ${S.stats.total} buổi tập`),800);
+  }
+  // TDEE notification for profile
+  if(S.profile.kg&&S.profile.cm){
+    const tdee=calcTDEE();
+    const{bmi,cat}=calcBMI();
+    const bmiEl=document.getElementById('p-meta');
+    if(bmiEl)bmiEl.textContent=`${S.profile.kg}kg · BMI ${bmi} (${cat}) · TDEE ~${tdee}kcal`;
+  }
+}
+
+// ═══════ BOOT ═══════
+window.onload=()=>{
+  document.getElementById('app').style.display='none';
+  // Check if user already onboarded
+  try{
+    const raw=localStorage.getItem('fitai_state');
+    if(raw){
+      const d=JSON.parse(raw);
+      if(d.profile&&d.profile.name){
+        // Skip onboarding, go straight to app
+        document.getElementById('ob').style.display='none';
+        document.getElementById('app').style.display='flex';
+        initApp();
+        return;
+      }
+    }
+  }catch(e){}
+  // Show onboarding for new users
+  document.getElementById('ob').style.display='flex';
+};
+</script>
+</body>
+</html>
