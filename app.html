@@ -610,9 +610,11 @@ label.lbl{font-size:10.5px;color:var(--txt3);display:block;margin-bottom:4px;tex
       <div class="rest-next" id="rest-next">Chuẩn bị set tiếp theo...</div>
     </div>
     <div class="rest-btns">
-      <button class="rest-btn" onclick="addRest(15)">+15s</button>
-      <button class="rest-btn" onclick="addRest(30)">+30s</button>
-      <button class="rest-btn skip" onclick="skipRest()">Bỏ qua ✓</button>
+      <button class="rest-btn" onclick="setRest(60)">1:00</button>
+      <button class="rest-btn" onclick="setRest(90)">1:30</button>
+      <button class="rest-btn" onclick="setRest(120)">2:00</button>
+      <button class="rest-btn" onclick="setRest(180)">3:00</button>
+      <button class="rest-btn skip" onclick="skipRest()">✓ Xong</button>
     </div>
   </div>
 </div>
@@ -765,12 +767,19 @@ label.lbl{font-size:10.5px;color:var(--txt3);display:block;margin-bottom:4px;tex
   <div class="add-food-sheet">
     <div class="rb" style="margin-bottom:12px">
       <div style="font-size:15px;font-weight:500" id="add-food-meal-name">Thêm món ăn</div>
-      <button onclick="closeAddFood()" style="background:none;border:none;color:var(--txt2);font-size:22px;cursor:pointer">✕</button>
+      <button onclick="cancelAddFood()" style="background:none;border:none;color:var(--txt2);font-size:22px;cursor:pointer">✕</button>
     </div>
-    <div style="position:relative;margin-bottom:4px">
-      <input class="inp" id="food-custom-name" placeholder="Tên món ăn...">
+    <!-- Custom food with AI lookup -->
+    <div style="display:flex;gap:7px;margin-bottom:6px">
+      <input class="inp" id="food-custom-name" placeholder="Nhập tên món ăn..." style="flex:1" onkeydown="if(event.key==='Enter')lookupFood()">
+      <button class="btn bl bsm" onclick="lookupFood()" style="white-space:nowrap;flex-shrink:0">AI tính</button>
     </div>
-    <div style="font-size:11px;color:var(--txt3);margin-bottom:12px;font-family:var(--FM)">Hoặc chọn nhanh:</div>
+    <div id="food-ai-result" style="display:none;background:var(--lime-dim);border:1px solid rgba(200,241,53,.2);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:10px;color:var(--lime);font-family:var(--FM);margin-bottom:5px">⚡ KẾT QUẢ AI</div>
+      <div style="font-size:13px;color:rgba(200,241,53,.9)" id="food-ai-txt"></div>
+      <button class="btn bl" style="margin-top:8px;height:34px;font-size:12px" id="food-ai-add-btn" onclick="addFoodFromAI()">+ Thêm món này</button>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:10px;font-family:var(--FM)">— HOẶC CHỌN NHANH —</div>
     <div class="food-preset-grid" id="food-presets"></div>
   </div>
 </div>
@@ -947,9 +956,21 @@ label.lbl{font-size:10.5px;color:var(--txt3);display:block;margin-bottom:4px;tex
         </div>
         <div class="pb" style="margin-bottom:10px"><div class="pf" id="nut-cal-bar" style="width:0%"></div></div>
         <div class="g3">
-          <div class="sb" style="padding:9px"><div class="sv" style="font-size:18px" id="nut-p">0g</div><div class="sk">Protein</div></div>
-          <div class="sb" style="padding:9px"><div class="sv" style="font-size:18px;color:var(--amber)" id="nut-c">0g</div><div class="sk">Carbs</div></div>
-          <div class="sb" style="padding:9px"><div class="sv" style="font-size:18px;color:var(--blue)" id="nut-f">0g</div><div class="sk">Fat</div></div>
+          <div class="sb" style="padding:9px">
+            <div class="sv" style="font-size:18px" id="nut-p">0g</div>
+            <div class="sk">Protein</div>
+            <div class="xxs muted" id="nut-p-target"></div>
+          </div>
+          <div class="sb" style="padding:9px">
+            <div class="sv" style="font-size:18px;color:var(--amber)" id="nut-c">0g</div>
+            <div class="sk">Carbs</div>
+            <div class="xxs muted" id="nut-c-target"></div>
+          </div>
+          <div class="sb" style="padding:9px">
+            <div class="sv" style="font-size:18px;color:var(--blue)" id="nut-f">0g</div>
+            <div class="sk">Fat</div>
+            <div class="xxs muted" id="nut-f-target"></div>
+          </div>
         </div>
       </div>
 
@@ -995,6 +1016,12 @@ label.lbl{font-size:10.5px;color:var(--txt3);display:block;margin-bottom:4px;tex
           <g id="squat-dots"></g>
         </svg>
         <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--txt3);font-family:var(--FM);margin-top:3px" id="squat-lbls"></div>
+      </div>
+
+      <!-- Monthly Calendar -->
+      <div class="sec-label">Lịch tập tháng này</div>
+      <div class="card" style="margin-bottom:10px">
+        <div id="monthly-cal"></div>
       </div>
 
       <!-- Body measurements -->
@@ -1290,6 +1317,103 @@ const EXERCISES=[
    cues:['Nằm sấp hông áp sát pad','Curl lên đến 90° hoặc hơn','Squeeze hamstring mạnh ở đỉnh','Hạ chậm 2-3s'],
    mistakes:['Hông nhấc lên khỏi pad','Dùng momentum giật lên'],
    sets:{'muscle':'3-4×12-15','strength':'','endurance':'3×15-20'},diffVi:'Cơ bản'},
+  // ─── THÊM BÀI TẬP MỚI ───
+  {id:26,name:'Chest Press Machine',nameVi:'Chest Press Machine',muscle:'chest',equip:'machine',emoji:'⚙️',ytId:'xUm0BiZCB_8',
+   cues:['Điều chỉnh ghế để tay ngang ngực giữa','Grip thẳng, đẩy ra trước không phải lên','Không lock out khuỷu hoàn toàn','Trả về chậm đến khi ngực căng'],
+   mistakes:['Ghế quá cao — thành shoulder press','Bounce ở điểm cuối'],
+   sets:{'muscle':'3×10-15','strength':'','endurance':'3×15-20'},diffVi:'Cơ bản'},
+  {id:27,name:'Pec Deck',nameVi:'Pec Deck (Bướm)',muscle:'chest',equip:'machine',emoji:'🦋',ytId:'Z57CtFmRMxA',
+   cues:['Lưng phẳng trên pad, cánh tay ngang vai','Khép 2 cánh tay vào giữa','Squeeze ngực mạnh ở điểm gặp nhau','Mở ra chậm cảm nhận stretch'],
+   mistakes:['Dùng vai thay vì ngực','Mở quá rộng hại shoulder'],
+   sets:{'muscle':'3-4×12-15','strength':'','endurance':'3×15-20'},diffVi:'Cơ bản'},
+  {id:28,name:'Dips',nameVi:'Dips (Chống song song)',muscle:'chest',equip:'bodyweight',emoji:'⬇️',ytId:'2z8JmcrW-As',
+   cues:['Ngả người về phía trước để tập ngực','Khuỷu 45-75° không quá rộng','Hạ đến ngực song song sàn','Đẩy lên mạnh không lock hết'],
+   mistakes:['Đứng thẳng quá — thành tricep','Hạ quá sâu hại vai'],
+   sets:{'muscle':'3×8-12','strength':'4×5-8','endurance':'3×12-20'},diffVi:'Trung cấp'},
+  {id:29,name:'Seated Row Machine',nameVi:'Rowing Machine ngồi',muscle:'back',equip:'machine',emoji:'🚂',ytId:'GZbfZ033f74',
+   cues:['Ngực tựa vào pad, lưng thẳng','Kéo về phía ngực dưới','Squeeze blade vai lại giữ 1s','Trả về kiểm soát, mở vai hoàn toàn'],
+   mistakes:['Dùng lưng dưới lấy momentum','Vai không retract hoàn toàn'],
+   sets:{'muscle':'4×10-15','strength':'4×6-10','endurance':'3×15-20'},diffVi:'Cơ bản'},
+  {id:30,name:'T-Bar Row',nameVi:'T-Bar Row',muscle:'back',equip:'barbell',emoji:'🔱',ytId:'j8PJZW1RCQ4',
+   cues:['Cúi người 45° lưng thẳng','Grip neutral, kéo vào ngực dưới','Squeeze lưng mạnh ở điểm cao','Hạ chậm kiểm soát'],
+   mistakes:['Lưng tròn khi nặng','Dùng bẫy thay vì lats'],
+   sets:{'muscle':'4×8-12','strength':'4×5-8','endurance':'3×12-15'},diffVi:'Trung cấp'},
+  {id:31,name:'Single Arm DB Row',nameVi:'Bent Over DB Row 1 tay',muscle:'back',equip:'dumbbell',emoji:'💪',ytId:'pYcpY20QaE8',
+   cues:['Tay và gối tựa bench, lưng phẳng','Kéo DB vào hông không lên vai','Elbow close to body, đi ra sau','Hạ thẳng xuống, vai drop hoàn toàn'],
+   mistakes:['Rotate lưng lấy thêm range','DB về phía vai không hông'],
+   sets:{'muscle':'4×10-12/side','strength':'4×6-8/side','endurance':'3×12-15/side'},diffVi:'Cơ bản'},
+  {id:32,name:'Cable Lateral Raise',nameVi:'Lateral Raise Cable',muscle:'shoulders',equip:'cable',emoji:'🔄',ytId:'PPzMbNMCkEQ',
+   cues:['Đứng cạnh cable thấp, tay chéo body','Nâng tay lên ngang vai','Hạ chậm — constant tension','Tốt hơn dumbbell ở phần cuối range'],
+   mistakes:['Swing quá nhiều','Nâng quá cao'],
+   sets:{'muscle':'4×15-20','strength':'','endurance':'4×20-25'},diffVi:'Cơ bản'},
+  {id:33,name:'Arnold Press',nameVi:'Arnold Press',muscle:'shoulders',equip:'dumbbell',emoji:'🏅',ytId:'vj2w851ZHRM',
+   cues:['Bắt đầu palm vào mặt (pronated)','Xoay tay ra khi đẩy lên (supinated)','Hít vào khi hạ, thở ra khi đẩy','Range of motion đầy đủ'],
+   mistakes:['Xoay quá sớm hoặc quá muộn','Dùng lưng lấy đà'],
+   sets:{'muscle':'3-4×10-12','strength':'','endurance':'3×12-15'},diffVi:'Trung cấp'},
+  {id:34,name:'Upright Row',nameVi:'Upright Row',muscle:'shoulders',equip:'barbell',emoji:'⬆️',ytId:'um3NaP1hXR8',
+   cues:['Grip hẹp hơn vai','Kéo bar dọc theo người lên cằm','Khuỷu luôn cao hơn tay','Hạ chậm kiểm soát'],
+   mistakes:['Grip quá rộng hại vai','Khuỷu thấp hơn tay'],
+   sets:{'muscle':'3×10-12','strength':'','endurance':'3×15-20'},diffVi:'Trung cấp'},
+  {id:35,name:'Preacher Curl',nameVi:'Preacher Curl',muscle:'arms',equip:'machine',emoji:'🎯',ytId:'fIWP-FRFNU0',
+   cues:['Cánh tay trên ép sát pad','Curl lên đến gần vai','Hạ chậm đến fully extended','Không swing khuỷu khỏi pad'],
+   mistakes:['Khuỷu rời pad khi nặng','Hạ quá nhanh'],
+   sets:{'muscle':'3×10-15','strength':'','endurance':'3×15-20'},diffVi:'Cơ bản'},
+  {id:36,name:'Cable Curl',nameVi:'Bicep Curl Cable',muscle:'arms',equip:'cable',emoji:'⚡',ytId:'NFzTWp2qpiE',
+   cues:['Constant tension tốt hơn dumbbell','Khuỷu cố định ở sườn','Curl lên, squeeze ở đỉnh 1s','Hạ chậm chống lại cable'],
+   mistakes:['Swing khuỷu','Không lower hoàn toàn'],
+   sets:{'muscle':'3-4×12-15','strength':'','endurance':'3×15-20'},diffVi:'Cơ bản'},
+  {id:37,name:'Overhead Tricep Extension',nameVi:'Overhead Tricep Extension',muscle:'arms',equip:'dumbbell',emoji:'🔼',ytId:'YbX7Wd8jQ-Q',
+   cues:['DB trên đầu, khuỷu chỉ thẳng lên','Hạ DB ra sau đầu','Duỗi ra fully, squeeze tricep','Khuỷu không flare ra ngoài'],
+   mistakes:['Khuỷu flare quá rộng','Không extend đầy đủ'],
+   sets:{'muscle':'3×12-15','strength':'','endurance':'3×15-20'},diffVi:'Cơ bản'},
+  {id:38,name:'Close Grip Bench',nameVi:'Close Grip Bench Press',muscle:'arms',equip:'barbell',emoji:'👐',ytId:'nEF0bv2FW9s',
+   cues:['Grip bằng vai không hẹp hơn','Khuỷu ép sát vào người','Hạ bar đến ngực thấp','Đẩy lên squeeze tricep'],
+   mistakes:['Grip quá hẹp — hại cổ tay','Khuỷu flare ra'],
+   sets:{'muscle':'3-4×8-12','strength':'4×5-8','endurance':'3×12-15'},diffVi:'Trung cấp'},
+  {id:39,name:'Leg Extension',nameVi:'Leg Extension',muscle:'legs',equip:'machine',emoji:'🦵',ytId:'YyvSfVjQeL0',
+   cues:['Lưng thẳng, pad ở trên cổ chân','Extend hoàn toàn, squeeze quad ở đỉnh','Hạ chậm 2-3s','Không hyperextend gối'],
+   mistakes:['Swing người lấy momentum','Không lock out hoàn toàn'],
+   sets:{'muscle':'3-4×12-15','strength':'','endurance':'3×15-20'},diffVi:'Cơ bản'},
+  {id:40,name:'Hack Squat',nameVi:'Hack Squat Machine',muscle:'legs',equip:'machine',emoji:'🏗️',ytId:'0tn5K9NqRuI',
+   cues:['Lưng phẳng trên pad','Chân đặt giữa platform','Hạ sâu đến 90° hoặc hơn','Đẩy qua gót chân'],
+   mistakes:['Heel nhấc lên','Knee cave in','Không đủ sâu'],
+   sets:{'muscle':'4×8-12','strength':'4×6-10','endurance':'3×15-20'},diffVi:'Cơ bản'},
+  {id:41,name:'Walking Lunge',nameVi:'Walking Lunge',muscle:'legs',equip:'dumbbell',emoji:'🚶',ytId:'L8fvypPrv9s',
+   cues:['Bước dài, gối sau gần chạm sàn','Gối trước không vượt ngón chân quá nhiều','Đẩy lên qua gót chân trước','Giữ thân trên thẳng'],
+   mistakes:['Bước quá ngắn','Người ngả về trước','Gối cave in'],
+   sets:{'muscle':'3×10-12/leg','strength':'','endurance':'3×15/leg'},diffVi:'Cơ bản'},
+  {id:42,name:'Sumo Deadlift',nameVi:'Sumo Deadlift',muscle:'legs',equip:'barbell',emoji:'🏋️',ytId:'Zp-JUGegHUY',
+   cues:['Chân rộng, mũi chân ra 45°','Grip hẹp bên trong chân','Hông thấp hơn conventional DL','Đẩy gối ra khi kéo'],
+   mistakes:['Không mở hông đủ rộng','Round lưng giống conventional'],
+   sets:{'muscle':'4×6-10','strength':'5×2-5','endurance':'3×10-15'},diffVi:'Nâng cao'},
+  {id:43,name:'Good Morning',nameVi:'Good Morning',muscle:'legs',equip:'barbell',emoji:'🌅',ytId:'YA-h3n9L4m8',
+   cues:['Bar trên vai như squat','Hinge hông ra sau chậm','Lưng thẳng, gối hơi cong','Đứng lên bằng cách ép hông về trước'],
+   mistakes:['Round lưng — RẤT nguy hiểm','Bar quá nặng'],
+   sets:{'muscle':'3×10-12','strength':'','endurance':'3×12-15'},diffVi:'Nâng cao'},
+  {id:44,name:'Donkey Kicks',nameVi:'Donkey Kick (Đá lừa)',muscle:'glutes',equip:'bodyweight',emoji:'🫏',ytId:'SJ1Xuz9LlZ4',
+   cues:['Quỳ gối, lưng thẳng','Đá 1 chân lên cao giữ thẳng gối','Squeeze mông ở điểm cao','Hạ chậm không chạm sàn'],
+   mistakes:['Lưng ưỡn quá','Gập gối khi đá'],
+   sets:{'muscle':'3×15-20/side','strength':'','endurance':'4×20/side'},diffVi:'Cơ bản'},
+  {id:45,name:'Cable Kickback',nameVi:'Cable Kickback',muscle:'glutes',equip:'cable',emoji:'🦶',ytId:'Ex6zjK94m7E',
+   cues:['Cúi người về phía cable, tay tựa','Kick chân ra sau giữ thẳng','Squeeze mông ở điểm xa nhất','Hạ chậm không swing'],
+   mistakes:['Swing dùng lưng','Gối gập quá nhiều'],
+   sets:{'muscle':'3-4×15-20/side','strength':'','endurance':'4×20/side'},diffVi:'Cơ bản'},
+  {id:46,name:'Ab Wheel',nameVi:'Ab Wheel Rollout',muscle:'core',equip:'bodyweight',emoji:'⚙️',ytId:'2HSjfLDzAhE',
+   cues:['Quỳ gối, ab wheel trước mặt','Roll ra từ từ đến gần sàn','Core braced toàn bộ — đừng sag','Kéo về bằng core không phải tay'],
+   mistakes:['Lưng võng — nguy hiểm','Dùng tay kéo về'],
+   sets:{'muscle':'3×8-15','strength':'','endurance':'3×10-20'},diffVi:'Nâng cao'},
+  {id:47,name:'Russian Twist',nameVi:'Russian Twist',muscle:'core',equip:'bodyweight',emoji:'🔄',ytId:'wkD8rjkodUI',
+   cues:['Ngồi 45°, chân nâng lên','Xoay người sang 2 bên','Tay chạm sàn bên cạnh','Giữ lưng thẳng không cong'],
+   mistakes:['Lưng tròn quá','Xoay quá nhanh'],
+   sets:{'muscle':'3×20-30 reps','strength':'','endurance':'3×30-40'},diffVi:'Cơ bản'},
+  {id:48,name:'Dead Bug',nameVi:'Dead Bug',muscle:'core',equip:'bodyweight',emoji:'🐛',ytId:'4XLEnwUr1d8',
+   cues:['Nằm ngửa, tay và chân lên 90°','Hạ tay phải + chân trái xuống','Lưng dưới ép sàn TOÀN THỜI GIAN','Đổi bên chậm rãi'],
+   mistakes:['Lưng nhấc khỏi sàn','Thở không đều'],
+   sets:{'muscle':'3×10/side','strength':'','endurance':'3×12/side'},diffVi:'Cơ bản'},
+  {id:49,name:'Seated Calf Raise',nameVi:'Seated Calf Raise',muscle:'core',equip:'machine',emoji:'🦵',ytId:'JbyjNymZOt0',
+   cues:['Pad đặt trên đầu gối','Nâng lên cao nhất có thể','Hạ chậm stretch hoàn toàn','Làm chậm, cảm nhận từng reps'],
+   mistakes:['Range ngắn','Quá nhanh'],
+   sets:{'muscle':'4×15-20','strength':'','endurance':'5×20-25'},diffVi:'Cơ bản'},
 ];
 
 const FOOD_PRESETS=[
@@ -1505,10 +1629,16 @@ function renderTodayCard(){
     <div class="today-plan-top">
       <div>
         <div class="sm" style="font-weight:500">${p.name}</div>
-        <div class="xs muted">${p.days}x/tuần · ${p.weeks[0]?.days.filter(d=>d.type!=='REST').length||0} buổi</div>
+        <div class="xs muted">${p.days}x/tuần · ${p.weeks[0]?.days.filter(d=>d.type!=='REST').length||0} buổi/tuần</div>
       </div>
       <span class="tag" style="background:${p.acc}22;color:${p.acc}">${p.lvl==='beginner'?'B':p.lvl==='intermediate'?'I':'A'}</span>
     </div>
+    ${(()=>{const prog=getPlanProgress();return prog?`
+    <div style="padding:0 12px 8px">
+      <div class="rb" style="margin-bottom:4px"><span class="xxs muted">Tuần ${prog.weeks}/${prog.totalWeeks}</span><span class="xxs muted">${prog.pct}%</span></div>
+      <div class="pb"><div class="pf" style="width:${prog.pct}%"></div></div>
+      <div class="xxs muted" style="margin-top:3px">${prog.workoutsInPlan} buổi đã hoàn thành trong plan này</div>
+    </div>`:''})()}
     <div class="today-plan-ex">
       ${todayExs.slice(0,4).map(e=>`
         <div class="today-plan-ex-row">
@@ -2078,18 +2208,34 @@ function renderNutMeals(){
     </div>`;
   }).join('');
   // Update macro totals
-  const goal=calcTDEE();
-  const pct=Math.min(Math.round(totalCal/goal*100),100);
-  document.getElementById('nut-cal-tag').textContent=`${Math.round(totalCal)} / ${goal} kcal`;
+  const targets=calcMacroTargets();
+  const pct=Math.min(Math.round(totalCal/targets.cal*100),100);
+  document.getElementById('nut-cal-tag').textContent=`${Math.round(totalCal)} / ${targets.cal} kcal`;
   document.getElementById('nut-cal-bar').style.width=pct+'%';
   document.getElementById('nut-p').textContent=Math.round(totalP)+'g';
   document.getElementById('nut-c').textContent=Math.round(totalC)+'g';
   document.getElementById('nut-f').textContent=Math.round(totalF)+'g';
+  const ptEl=document.getElementById('nut-p-target');if(ptEl)ptEl.textContent='/ '+targets.protein+'g';
+  const ctEl=document.getElementById('nut-c-target');if(ctEl)ctEl.textContent='/ '+targets.carbs+'g';
+  const ftEl=document.getElementById('nut-f-target');if(ftEl)ftEl.textContent='/ '+targets.fat+'g';
+  const calTagEl=document.getElementById('nut-cal-tag');
+  if(calTagEl)calTagEl.title=`Target: P${targets.protein}g C${targets.carbs}g F${targets.fat}g`;
 }
 function calcTDEE(){
   const{kg,cm,age,sex,days}=ST.profile;
   const bmr=sex==='female'?447.593+(9.247*kg)+(3.098*cm)-(4.330*age):88.362+(13.397*kg)+(4.799*cm)-(5.677*age);
   return Math.round(bmr*[1.2,1.375,1.375,1.55,1.55,1.725,1.725,1.9][days||4]);
+}
+function calcMacroTargets(){
+  const kg=ST.profile.kg||70,goal=ST.profile.goal;
+  const tdee=calcTDEE();
+  const protein=Math.round(goal==='muscle'?kg*2.2:goal==='fat'?kg*2.0:kg*1.8);
+  const calTarget=goal==='fat'?Math.round(tdee*0.85):goal==='muscle'?Math.round(tdee*1.1):tdee;
+  const fatCal=Math.round(calTarget*0.25);
+  const fat=Math.round(fatCal/9);
+  const carbsCal=calTarget-(protein*4)-(fat*9);
+  const carbs=Math.max(0,Math.round(carbsCal/4));
+  return{cal:calTarget,protein,carbs,fat};
 }
 function openAddFood(meal,mealName){
   ST.addFoodMeal=meal;
@@ -2132,6 +2278,7 @@ async function genMealPlan(){
 // ════════════════════════════════════════════════════════
 function renderProgress(){
   renderCharts();renderMeas();renderAchievements();
+  renderMonthlyCalendar('monthly-cal');
 }
 function renderCharts(){
   const bench=[60,62.5,65,67.5,70,72.5,75,77.5];
@@ -2298,6 +2445,118 @@ function notif(ico,title,msg,dur=3500){
 function toast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
   setTimeout(()=>t.classList.remove('on'),2500);
+}
+
+// ════════════════════════════════════════════════════════
+// NUTRITION — AI FOOD LOOKUP
+// ════════════════════════════════════════════════════════
+let foodAIResult=null;
+async function lookupFood(){
+  const name=document.getElementById('food-custom-name').value.trim();
+  if(!name)return;
+  const wrap=document.getElementById('food-ai-result');
+  const txt=document.getElementById('food-ai-txt');
+  wrap.style.display='block';
+  txt.innerHTML='<span class="td"></span><span class="td"></span><span class="td"></span>';
+  document.getElementById('food-ai-add-btn').style.display='none';
+  const p=`Tra cứu thông tin dinh dưỡng của "${name}" (1 khẩu phần thông thường). Trả về ĐÚNG định dạng JSON này và chỉ JSON, không thêm gì: {"name":"tên món","serving":"khẩu phần","cal":số,"protein":số,"carbs":số,"fat":số}`;
+  try{
+    const raw=await ai(p,200);
+    const match=raw.match(/\{[\s\S]*\}/);
+    if(match){
+      foodAIResult=JSON.parse(match[0]);
+      txt.innerHTML=`<strong>${foodAIResult.name}</strong> (${foodAIResult.serving})<br>${foodAIResult.cal} kcal · ${foodAIResult.protein}g P · ${foodAIResult.carbs}g C · ${foodAIResult.fat}g F`;
+      document.getElementById('food-ai-add-btn').style.display='block';
+    } else {
+      txt.textContent='Không tìm thấy. Thử tên khác.';
+    }
+  }catch{txt.textContent='Lỗi AI. Thử lại.';}
+}
+function addFoodFromAI(){
+  if(!foodAIResult||!ST.addFoodMeal)return;
+  ST.nut[ST.addFoodMeal].push({
+    name:foodAIResult.name+(foodAIResult.serving?' ('+foodAIResult.serving+')':''),
+    cal:foodAIResult.cal||0,p:foodAIResult.protein||0,c:foodAIResult.carbs||0,f:foodAIResult.fat||0
+  });
+  cancelAddFood();save();renderNutMeals();
+  toast(`✅ Đã thêm ${foodAIResult.name}`);
+  foodAIResult=null;
+}
+function addFoodPreset(i){
+  if(!ST.addFoodMeal)return;
+  ST.nut[ST.addFoodMeal].push(FOOD_PRESETS[i]);
+  cancelAddFood();save();renderNutMeals();
+}
+function cancelAddFood(){
+  document.getElementById('add-food-modal').classList.remove('show');
+  document.getElementById('food-ai-result').style.display='none';
+  document.getElementById('food-custom-name').value='';
+  foodAIResult=null;
+}
+// Keep backward compat
+function closeAddFood(){cancelAddFood();}
+
+// ════════════════════════════════════════════════════════
+// REST TIMER — FIXED
+// ════════════════════════════════════════════════════════
+function setRest(sec){
+  // If already running, just change time
+  if(restState.active){
+    restState.total=sec;restState.remaining=sec;
+  } else {
+    startRest(sec,'');
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// MONTHLY CALENDAR
+// ════════════════════════════════════════════════════════
+function renderMonthlyCalendar(containerId){
+  const el=document.getElementById(containerId);if(!el)return;
+  const now=new Date(),year=now.getFullYear(),month=now.getMonth();
+  const days=['T2','T3','T4','T5','T6','T7','CN'];
+  let first=new Date(year,month,1).getDay();
+  if(first===0)first=7;
+  const total=new Date(year,month+1,0).getDate();
+  const workoutDates=new Set(ST.workouts.map(w=>w.date));
+  let html=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
+    ${days.map(d=>`<div style="text-align:center;font-size:9px;color:var(--txt3);padding:2px 0;font-family:var(--FM)">${d}</div>`).join('')}
+  </div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">`;
+  for(let i=1;i<first;i++)html+=`<div></div>`;
+  for(let d=1;d<=total;d++){
+    const dateStr=new Date(year,month,d).toLocaleDateString('vi-VN');
+    const isToday=d===now.getDate();
+    const hasW=workoutDates.has(dateStr);
+    html+=`<div style="aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-family:var(--FM);position:relative;cursor:pointer;
+      ${isToday?'border:1.5px solid var(--lime);color:var(--lime);':''}
+      ${hasW&&!isToday?'background:#1e2e00;color:#9fd44f;':''}
+      ${!hasW&&!isToday?'color:var(--txt3);':''}"
+      onclick="calDayClick(${d},${month},${year})">
+      ${d}
+      ${hasW?'<div style="width:4px;height:4px;border-radius:50%;background:var(--lime);position:absolute;bottom:3px"></div>':''}
+    </div>`;
+  }
+  html+='</div>';
+  el.innerHTML=html;
+}
+function calDayClick(d,m,y){
+  const dateStr=new Date(y,m,d).toLocaleDateString('vi-VN');
+  const w=ST.workouts.find(x=>x.date===dateStr);
+  if(w)toast(`${dateStr}: ${w.title} · ${w.vol}kg · ${w.dur}ph`);
+}
+
+// ════════════════════════════════════════════════════════
+// PLAN PROGRESS TRACKING
+// ════════════════════════════════════════════════════════
+function getPlanProgress(){
+  if(!ST.currentPlan)return null;
+  const startDate=ST.planStartDate||new Date().toISOString();
+  if(!ST.planStartDate)ST.planStartDate=startDate;
+  const weeks=Math.floor((Date.now()-new Date(startDate))/(7*24*3600*1000))+1;
+  const totalWeeks=ST.currentPlan.weeks.length*2; // each week def covers 2 actual weeks
+  const pct=Math.min(Math.round(weeks/totalWeeks*100),100);
+  const workoutsInPlan=ST.workouts.filter(w=>w.title===ST.currentPlan.name).length;
+  return{weeks,totalWeeks,pct,workoutsInPlan};
 }
 
 // ════════════════════════════════════════════════════════
