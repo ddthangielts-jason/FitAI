@@ -2367,11 +2367,6 @@ function openAddFood(meal,mealName){
     </div>`).join('');
   document.getElementById('add-food-modal').classList.add('show');
 }
-function addFoodPreset(i){
-  if(!ST.addFoodMeal)return;
-  ST.nut[ST.addFoodMeal].push(FOOD_PRESETS[i]);
-  closeAddFood();save();renderNutMeals();
-}
 function removeFood(meal,i){ST.nut[meal].splice(i,1);renderNutMeals();save();}
 async function genMealPlan(){
   const el=document.getElementById('nut-ai-wrap');
@@ -2781,6 +2776,24 @@ function cancelRestNotification(){
 // PLATE CALCULATOR + WARMUP SETS
 // ════════════════════════════════════════════════════════
 function calcPlates(totalKg,barKg=20){
+  // Called from plate modal with no args
+  if(totalKg===undefined){
+    const t=parseFloat(document.getElementById('plate-target')?.value)||0;
+    const b=parseFloat(document.getElementById('plate-bar')?.value)||20;
+    if(!t||t<=b){
+      const el=document.getElementById('plate-result');
+      if(el)el.innerHTML=t?`<div class="xs muted">Cần ${b}kg bar — không cần đĩa</div>`:'';
+      return;
+    }
+    const resultStr=calcPlates(t,b);
+    const el=document.getElementById('plate-result');
+    if(el)el.innerHTML=`<div style="background:var(--lime-dim);border:1px solid rgba(200,241,53,.2);border-radius:var(--r);padding:12px">
+      <div style="font-size:10px;color:var(--lime);font-family:var(--FM);margin-bottom:6px">MỖI BÊN</div>
+      <div style="font-size:14px;color:var(--lime);font-weight:500">${resultStr}</div>
+      <div class="xs muted" style="margin-top:4px">Bar ${b}kg + 2 bên = ${t}kg</div>
+    </div>`;
+    return;
+  }
   const load=(totalKg-barKg)/2;
   const plates=[20,15,10,5,2.5,1.25];
   const result=[];let rem=load;
@@ -2788,6 +2801,13 @@ function calcPlates(totalKg,barKg=20){
   return result.length?result.join(' + '):'Chỉ bar';
 }
 function showPlateCalc(id,name){
+  // Called from profile menu with no args - open modal
+  if(id===undefined){
+    document.getElementById('plate-modal').style.display='flex';
+    document.getElementById('plate-target').value='';
+    document.getElementById('plate-result').innerHTML='';
+    return;
+  }
   const data=ST.exData[id];
   const workingSets=data?.sets.filter(s=>s.kg>0&&s.reps>0);
   const kg=workingSets?.length?workingSets[workingSets.length-1].kg:data?.sets[0]?.kg||60;
@@ -2862,44 +2882,6 @@ function getPlanProgress(){
 // ════════════════════════════════════════════════════════
 // PLATE CALCULATOR
 // ════════════════════════════════════════════════════════
-function showPlateCalc(){
-  document.getElementById('plate-modal').style.display='flex';
-  document.getElementById('plate-target').value='';
-  document.getElementById('plate-result').innerHTML='';
-}
-function calcPlates(){
-  const target=parseFloat(document.getElementById('plate-target').value)||0;
-  const bar=parseFloat(document.getElementById('plate-bar').value)||20;
-  const el=document.getElementById('plate-result');
-  if(target<=bar){
-    el.innerHTML=`<div class="xs muted">Chỉ cần thanh barbell ${bar}kg, không cần đĩa.</div>`;return;
-  }
-  const perSide=(target-bar)/2;
-  const plates=[25,20,15,10,5,2.5,1.25,0.5];
-  let remaining=perSide;
-  const used=[];
-  for(const p of plates){
-    while(remaining>=p-0.001){
-      used.push(p);remaining=Math.round((remaining-p)*100)/100;
-    }
-  }
-  if(remaining>0.05){
-    el.innerHTML=`<div class="xs" style="color:var(--red)">Không thể đạt chính xác ${target}kg với đĩa tiêu chuẩn.</div>`;return;
-  }
-  const grouped={};
-  used.forEach(p=>{grouped[p]=(grouped[p]||0)+1;});
-  const plateBars=Object.entries(grouped).sort((a,b)=>b[0]-a[0]).map(([p,n])=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:.5px solid var(--brd)">
-      <div style="background:var(--bg4);border:1px solid var(--brd2);border-radius:6px;padding:4px 10px;font-family:var(--FM);font-size:13px;color:var(--lime);min-width:48px;text-align:center">${p}kg</div>
-      <div style="font-size:12px;color:var(--txt2)">× ${n} đĩa mỗi bên <span style="color:var(--txt3)">(tổng ${n*2} đĩa)</span></div>
-    </div>`).join('');
-  el.innerHTML=`
-    <div style="background:var(--lime-dim);border:1px solid rgba(200,241,53,.2);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
-      <div style="font-size:10px;color:var(--lime);font-family:var(--FM);margin-bottom:4px">KẾT QUẢ — ${perSide}kg mỗi bên</div>
-      ${plateBars}
-    </div>
-    <div class="xs muted">Tổng: Thanh ${bar}kg + ${perSide*2}kg đĩa = <strong style="color:var(--lime)">${target}kg</strong></div>`;
-}
 
 // ════════════════════════════════════════════════════════
 // RESET APP
