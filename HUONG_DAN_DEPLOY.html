@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FitAI — Hướng dẫn Deploy</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--lime:#c8f135;--bg:#0a0a0a;--bg2:#111;--bg3:#181818;--txt:#f0f0e8;--txt2:#888;--txt3:#444;--brd:#222;--r:10px}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;padding:0 0 60px}
+.container{max-width:720px;margin:0 auto;padding:0 24px}
+header{padding:40px 24px 32px;max-width:720px;margin:0 auto;border-bottom:1px solid var(--brd)}
+.logo{font-size:20px;font-weight:500;margin-bottom:8px}.logo span{color:var(--lime)}
+h1{font-size:28px;font-weight:500;margin-bottom:8px}
+.sub{color:var(--txt2);font-size:14px}
+.phase{margin-top:40px}
+.phase-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--brd)}
+.phase-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0}
+.phase-title{font-size:18px;font-weight:500}
+.phase-eta{font-size:12px;color:var(--txt3);margin-top:2px}
+.step{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:20px;margin-bottom:12px;position:relative}
+.step-num{position:absolute;top:20px;right:20px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--txt3)}
+.step h3{font-size:15px;font-weight:500;margin-bottom:6px}
+.step p{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:10px}
+.step p:last-child{margin-bottom:0}
+.cmd{background:var(--bg3);border:1px solid var(--brd);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--lime);margin:8px 0;display:block;word-break:break-all;cursor:pointer;transition:border-color .2s;position:relative}
+.cmd:hover{border-color:var(--lime)}
+.cmd::after{content:'Copy';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--txt3)}
+.link{color:var(--lime);text-decoration:none;font-size:13px}
+.link:hover{text-decoration:underline}
+.warn{background:#1a1000;border:1px solid #2e1a00;border-radius:8px;padding:12px 14px;font-size:13px;color:#f5a84d;margin-top:10px}
+.warn strong{display:block;margin-bottom:4px}
+.success{background:#1e2e00;border:1px solid #2d4400;border-radius:8px;padding:12px 14px;font-size:13px;color:#9fd44f;margin-top:10px}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;font-family:'JetBrains Mono',monospace;margin-bottom:8px}
+.tag-free{background:#1e2e00;color:#9fd44f}
+.tag-paid{background:#1a1000;color:#f5a84d}
+.tag-important{background:#2e0d0d;color:#f57070}
+.img-placeholder{background:var(--bg3);border:1px dashed var(--brd);border-radius:8px;height:120px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--txt3);margin:10px 0}
+.checklist{list-style:none;margin-top:10px}
+.checklist li{font-size:13px;color:var(--txt2);padding:5px 0;border-bottom:1px solid var(--brd);display:flex;gap:8px}
+.checklist li:last-child{border-bottom:none}
+.checklist li::before{content:'□';color:var(--txt3)}
+.final-box{background:linear-gradient(135deg,rgba(200,241,53,.08),transparent);border:1px solid rgba(200,241,53,.2);border-radius:var(--r);padding:24px;margin-top:40px;text-align:center}
+.final-box h2{font-size:22px;font-weight:500;margin-bottom:8px}
+.final-box p{font-size:13px;color:var(--txt2);margin-bottom:16px}
+.final-btn{background:var(--lime);color:#111;border:none;border-radius:8px;padding:12px 28px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">FIT<span>AI</span></div>
+  <h1>Hướng dẫn Deploy & Ra mắt</h1>
+  <p class="sub">Đọc từ trên xuống, làm theo thứ tự. Tổng thời gian: 2–3 tiếng.</p>
+</header>
+
+<div class="container">
+
+<!-- ══════ PHASE 1 ══════ -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#1e2e00;color:#9fd44f">1</div>
+    <div>
+      <div class="phase-title">Chuẩn bị thư mục upload</div>
+      <div class="phase-eta">5 phút</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">01</div>
+    <span class="tag tag-free">MIỄN PHÍ</span>
+    <h3>Kiểm tra thư mục fitai-deploy/</h3>
+    <p>Thư mục bạn download từ mình phải có đúng cấu trúc này:</p>
+    <code class="cmd" style="cursor:default">
+fitai-deploy/<br>
+├── index.html &nbsp;&nbsp;&nbsp;&nbsp;← Landing page<br>
+├── app.html &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;← Ứng dụng chính<br>
+├── exercises.html ← Thư viện bài tập<br>
+├── vercel.json &nbsp;&nbsp;&nbsp;← Cấu hình Vercel<br>
+├── .env.example &nbsp;← Mẫu env variables<br>
+└── api/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── chat.js &nbsp;&nbsp;&nbsp;&nbsp;← AI proxy<br>
+&nbsp;&nbsp;&nbsp;&nbsp;├── checkout.js ← Stripe payment<br>
+&nbsp;&nbsp;&nbsp;&nbsp;└── webhook.js &nbsp;← Stripe webhook
+    </code>
+    <p>Nếu thiếu file nào, nhắn mình build lại.</p>
+  </div>
+</div>
+
+<!-- ══════ PHASE 2 ══════ -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#1e2e00;color:#9fd44f">2</div>
+    <div>
+      <div class="phase-title">Deploy lên Vercel</div>
+      <div class="phase-eta">15 phút — miễn phí</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">02</div>
+    <span class="tag tag-free">MIỄN PHÍ</span>
+    <h3>Tạo tài khoản Vercel</h3>
+    <p>Mở trình duyệt, vào địa chỉ:</p>
+    <a class="cmd link" href="https://vercel.com/signup" target="_blank">https://vercel.com/signup</a>
+    <p>Nhấn <strong>"Continue with Google"</strong> → đăng nhập Google của bạn → xong.</p>
+  </div>
+
+  <div class="step">
+    <div class="step-num">03</div>
+    <h3>Upload thư mục lên Vercel</h3>
+    <p>Trong Vercel dashboard:</p>
+    <p>1. Nhấn nút <strong>"Add New..."</strong> → chọn <strong>"Project"</strong></p>
+    <p>2. Kéo và thả toàn bộ thư mục <strong>fitai-deploy/</strong> vào ô upload</p>
+    <p>3. Đặt tên project: <strong>fitai</strong></p>
+    <p>4. Nhấn <strong>"Deploy"</strong> → chờ 1–2 phút</p>
+    <div class="success">✅ Sau khi deploy xong, Vercel cho bạn URL dạng: <strong>fitai-xxx.vercel.app</strong> — đây là link app thật của bạn!</div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">04</div>
+    <span class="tag tag-important">QUAN TRỌNG</span>
+    <h3>Lấy Anthropic API Key và paste vào Vercel</h3>
+    <p><strong>Bước 4a</strong> — Lấy API key:</p>
+    <a class="cmd link" href="https://console.anthropic.com/api-keys" target="_blank">https://console.anthropic.com/api-keys</a>
+    <p>Nhấn <strong>"Create Key"</strong> → copy key (bắt đầu bằng sk-ant-...)</p>
+
+    <p style="margin-top:12px"><strong>Bước 4b</strong> — Paste vào Vercel:</p>
+    <p>Trong Vercel: <strong>Settings → Environment Variables → Add New</strong></p>
+    <p>Điền vào 2 ô:</p>
+    <code class="cmd" style="cursor:default">
+NAME: ANTHROPIC_API_KEY<br>
+VALUE: sk-ant-xxxxxxxx (key bạn vừa copy)
+    </code>
+    <p>Nhấn <strong>Save</strong> → sau đó nhấn <strong>Redeploy</strong> để apply.</p>
+    <div class="warn">
+      <strong>⚠️ Tại sao cần làm bước này?</strong>
+      Nếu không làm, API key bị lộ trong code — ai cũng thấy và dùng được, tốn tiền của bạn.
+    </div>
+  </div>
+</div>
+
+<!-- ══════ PHASE 3 ══════ -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#1a1000;color:#f5a84d">3</div>
+    <div>
+      <div class="phase-title">Tích hợp Stripe — nhận tiền</div>
+      <div class="phase-eta">45 phút</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">05</div>
+    <span class="tag tag-paid">CẦN ĐĂNG KÝ</span>
+    <h3>Tạo tài khoản Stripe</h3>
+    <a class="cmd link" href="https://stripe.com" target="_blank">https://stripe.com → Create account</a>
+    <p>Điền thông tin:</p>
+    <ul class="checklist">
+      <li>Email của bạn</li>
+      <li>Tên thật + số CMND/CCCD</li>
+      <li>Địa chỉ tại Việt Nam</li>
+      <li>Tài khoản ngân hàng VN để nhận tiền</li>
+    </ul>
+    <div class="warn"><strong>⏳ Stripe duyệt trong 1–3 ngày làm việc.</strong> Bạn vẫn có thể test bằng tài khoản test mode ngay.</div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">06</div>
+    <h3>Tạo sản phẩm FitAI Pro trên Stripe</h3>
+    <p>Trong Stripe Dashboard:</p>
+    <p>1. Vào <strong>Products → Add product</strong></p>
+    <p>2. Tên sản phẩm: <strong>FitAI Pro</strong></p>
+    <p>3. Nhấn <strong>"Add price"</strong> → chọn <strong>Recurring</strong></p>
+    <p>4. Tạo Price đầu tiên:</p>
+    <code class="cmd" style="cursor:default">
+Currency: VND<br>
+Amount: 1499000<br>
+Billing period: Yearly<br>
+→ Copy Price ID: price_xxxxxxxxxx (LƯU LẠI)
+    </code>
+    <p>5. Nhấn <strong>"Add another price"</strong> → tạo Price thứ 2:</p>
+    <code class="cmd" style="cursor:default">
+Currency: VND<br>
+Amount: 249000<br>
+Billing period: Monthly<br>
+→ Copy Price ID: price_xxxxxxxxxx (LƯU LẠI)
+    </code>
+  </div>
+
+  <div class="step">
+    <div class="step-num">07</div>
+    <h3>Paste Stripe keys vào Vercel</h3>
+    <p>Vào <strong>Vercel → Settings → Environment Variables</strong>, thêm 4 biến:</p>
+    <code class="cmd" style="cursor:default">
+STRIPE_SECRET_KEY = sk_live_xxxxxxxx<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(Stripe → Developers → API Keys → Secret key)<br><br>
+STRIPE_PRICE_ANNUAL = price_xxxxxxxx<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(Price ID năm bạn vừa tạo)<br><br>
+STRIPE_PRICE_MONTHLY = price_xxxxxxxx<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(Price ID tháng bạn vừa tạo)<br><br>
+NEXT_PUBLIC_BASE_URL = https://fitai-xxx.vercel.app<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(URL Vercel của bạn)
+    </code>
+    <p>Sau khi điền xong → nhấn <strong>Redeploy</strong>.</p>
+  </div>
+
+  <div class="step">
+    <div class="step-num">08</div>
+    <h3>Cấu hình Stripe Webhook</h3>
+    <p>Webhook giúp app biết khi user đã trả tiền thành công.</p>
+    <p>Trong Stripe: <strong>Developers → Webhooks → Add endpoint</strong></p>
+    <code class="cmd" style="cursor:default">
+Endpoint URL:<br>
+https://fitai-xxx.vercel.app/api/webhook<br><br>
+Events to listen:<br>
+✓ checkout.session.completed<br>
+✓ customer.subscription.deleted<br>
+✓ invoice.payment_failed
+    </code>
+    <p>Sau khi tạo → copy <strong>Signing secret</strong> (whsec_xxx) → paste vào Vercel:</p>
+    <code class="cmd" style="cursor:default">STRIPE_WEBHOOK_SECRET = whsec_xxxxxxxx</code>
+  </div>
+</div>
+
+<!-- ══════ PHASE 4 ══════ -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#0d1e33;color:#4d9fff">4</div>
+    <div>
+      <div class="phase-title">Test toàn bộ trước khi ra mắt</div>
+      <div class="phase-eta">20 phút</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">09</div>
+    <h3>Test Stripe bằng thẻ test</h3>
+    <p>Stripe cung cấp số thẻ test để bạn thử thanh toán mà không mất tiền thật:</p>
+    <code class="cmd" style="cursor:default">
+Số thẻ: 4242 4242 4242 4242<br>
+Ngày hết hạn: bất kỳ (VD: 12/28)<br>
+CVC: bất kỳ (VD: 123)<br>
+Tên: Test User
+    </code>
+    <p>Mở app → nhấn Nâng cấp Pro → điền thẻ test → kiểm tra xem redirect về app không.</p>
+    <div class="success">✅ Nếu redirect thành công về app.html?pro=true → Stripe hoạt động đúng!</div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">10</div>
+    <h3>Test AI Coach</h3>
+    <p>Vào tab AI Coach → hỏi một câu → đợi trả lời.</p>
+    <div class="success">✅ Nếu AI trả lời tiếng Việt → API key hoạt động đúng!</div>
+    <div class="warn"><strong>Nếu lỗi "API key chưa cấu hình":</strong> Quay lại Vercel → kiểm tra ANTHROPIC_API_KEY đã được save và Redeploy chưa.</div>
+  </div>
+</div>
+
+<!-- ══════ PHASE 5 ══════ -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num" style="background:#1a0015;color:#f070b4">5</div>
+    <div>
+      <div class="phase-title">Ra mắt — kéo user đầu tiên</div>
+      <div class="phase-eta">Sau khi test xong</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">11</div>
+    <h3>Post lên X/Twitter cộng đồng gym VN</h3>
+    <p>Copy nội dung này và post (chỉnh sửa cho tự nhiên):</p>
+    <code class="cmd" style="cursor:default; white-space:pre-wrap; line-height:1.7">
+Mình vừa build xong FitAI — app gym AI đầu tiên hoàn toàn bằng tiếng Việt 🇻🇳
+
+5 vấn đề mà Nudges Me và các app gym khác chưa giải quyết:
+→ Không có AI gợi ý weight cho từng set
+→ Plan không phân cấp B/I/A rõ ràng  
+→ Không có dinh dưỡng / meal plan
+→ Toàn tiếng Anh
+→ Plan nữ chưa được calibrate đúng
+
+FitAI giải quyết tất cả — thử miễn phí 7 ngày:
+[link app của bạn]
+
+Feedback thật sự được trân trọng 🙏
+    </code>
+  </div>
+
+  <div class="step">
+    <div class="step-num">12</div>
+    <h3>DM 10 PT/Coach — offer free Pro</h3>
+    <p>Tìm PT người Việt trên Instagram/X → nhắn:</p>
+    <code class="cmd" style="cursor:default; white-space:pre-wrap; line-height:1.7">
+"Chào [tên], mình vừa build FitAI — app gym AI tiếng Việt.
+Mình muốn offer bạn tài khoản Pro miễn phí vĩnh viễn
+để dùng thử và cho mình feedback thật.
+Không cần làm gì cả, chỉ dùng và nhắn mình thấy gì chưa ổn.
+Link: [link app]"
+    </code>
+    <p>1 PT có thể kéo 20–50 học viên. 10 PT = 200–500 users tiềm năng.</p>
+  </div>
+</div>
+
+<!-- FINAL -->
+<div class="final-box">
+  <h2>Bạn đã sẵn sàng 🚀</h2>
+  <p>Làm xong 12 bước này là app của bạn live thật, thu tiền được, có user thật.<br>Mỗi khi bị stuck ở bước nào — nhắn mình, mình fix ngay.</p>
+  <button class="final-btn" onclick="window.location.href='app.html'">Vào app →</button>
+</div>
+
+</div>
+
+<script>
+document.querySelectorAll('.cmd').forEach(el=>{
+  if(el.tagName==='A')return;
+  el.addEventListener('click',()=>{
+    navigator.clipboard?.writeText(el.textContent.trim());
+    const old=el.style.borderColor;
+    el.style.borderColor='#c8f135';
+    setTimeout(()=>el.style.borderColor=old,800);
+  });
+});
+</script>
+</body>
+</html>
